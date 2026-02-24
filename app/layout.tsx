@@ -1,8 +1,15 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
+const getBaseUrl = () => {
+  if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL;
+  if (process.env.NEXT_PUBLIC_VERCEL_URL) return `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`;
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+  return "http://localhost:3000";
+};
+
 export const metadata: Metadata = {
-  metadataBase: new URL("https://vangbachonghang.com"), // Thay bằng tên miền thật nếu có
+  metadataBase: new URL(getBaseUrl()), // Tự động lấy domain từ Vercel khi deploy
   title: "Bảng Giá Vàng - Vàng Bạc Hồng Hằng",
   description: "Trang cập nhật giá vàng bạc 9999, vàng tây, vàng ý, trang sức trực tuyến mỗi ngày tại Vàng Bạc Hồng Hằng - Hải Lựu, Sông Lô, Vĩnh Phúc.",
   keywords: ["Giá vàng", "Vàng bạc Hồng Hằng", "Giá vàng 9999", "Giá vàng hôm nay", "Trang sức vàng", "Tiệm vàng Hồng Hằng", "Sông Lô", "Vĩnh Phúc"],

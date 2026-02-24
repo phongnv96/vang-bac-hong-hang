@@ -199,8 +199,8 @@ export default function Home() {
         </div>
 
         {/* Footer */}
-        <div className="uppercase text-footer" style={{ color: "rgba(201,168,76,0.5)", letterSpacing: "0.2em" }}>
-          Giá có thể thay đổi theo thị trường • Vui lòng liên hệ để biết chi tiết
+        <div className="text-footer" style={{ color: "rgba(201,168,76,0.5)", letterSpacing: "0.2em" }}>
+          <i>Giá có thể thay đổi theo thị trường • Vui lòng liên hệ để biết chi tiết</i>
         </div>
       </div>
     </div>
