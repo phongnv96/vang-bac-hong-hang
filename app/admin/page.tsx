@@ -1,14 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { type PriceRow, DEFAULT_PRICES, formatVND } from "../lib/prices";
+import { useRouter } from "next/navigation";
+import { type PriceRow, DEFAULT_PRICES, formatVND, parseVND } from "../lib/prices";
 
 export default function AdminPage() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [prices, setPrices] = useState<PriceRow[]>([]);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [prices, setPrices] = useState<PriceRow[]>(DEFAULT_PRICES);
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -87,7 +89,11 @@ export default function AdminPage() {
       const data = await res.json();
       if (res.ok && data.success) {
         setSaved(true);
-        setTimeout(() => setSaved(false), 3000);
+        // Optional short delay so user sees "Saved!" before navigating
+        setTimeout(() => {
+          setSaved(false);
+          router.push("/");
+        }, 800);
       } else {
         alert("Lỗi: " + (data.error || "Không thể lưu"));
       }
@@ -181,11 +187,11 @@ export default function AdminPage() {
 
   // ------- ADMIN DASHBOARD (TV-style layout) -------
   return (
-    <div className="bg-theme w-screen h-screen flex flex-col overflow-auto admin-dashboard">
-
-      {/* Header row */}
-      <div className="flex items-center justify-between mb-[2vh]">
-        <div className="animate-shimmer uppercase text-title"
+    <div className="bg-theme w-screen min-h-screen flex flex-col items-center justify-center overflow-auto admin-dashboard">
+      <div className="w-full flex flex-col">
+        {/* Header row */}
+      <div className="flex flex-col md:flex-row items-center justify-between mb-4 md:mb-[2vh] gap-4">
+        <div className="animate-shimmer uppercase leading-[1.1] text-center md:text-left text-title"
              style={{
                fontFamily: "'Playfair Display', serif",
                fontWeight: 900,
@@ -195,7 +201,7 @@ export default function AdminPage() {
              }}>
           Quản Lý Bảng Giá
         </div>
-        <div className="flex items-center gap-[2vw]">
+        <div className="flex flex-wrap items-center justify-center md:justify-end gap-2 md:gap-[1vw] w-full md:w-auto">
           {saved && (
             <span className="font-bold animate-pulse color-sell" style={{ fontSize: "3vh" }}>
               ✓ Đã lưu!
@@ -204,30 +210,30 @@ export default function AdminPage() {
           <button
             onClick={handleSave}
             disabled={loading}
-            className="th-gradient font-black uppercase tracking-wider cursor-pointer rounded-lg transition-all hover:brightness-110 disabled:opacity-50"
-            style={{ fontSize: "2.5vh", padding: "1.2vh 3vw" }}>
+            className="flex-1 md:flex-none th-gradient font-black uppercase tracking-wider cursor-pointer rounded-lg transition-all hover:brightness-110 disabled:opacity-50 text-btn"
+            style={{ padding: "1.2vh 2vw", minWidth: "120px" }}>
             {loading ? "⏳ Đang lưu..." : "💾 Lưu Bảng Giá"}
           </button>
           <a href="/" target="_blank"
-             className="rounded-lg font-bold uppercase tracking-wider transition-all hover:brightness-110"
+             className="flex-1 md:flex-none text-center rounded-lg font-bold uppercase tracking-wider transition-all hover:brightness-110 text-footer"
              style={{
-               fontSize: "2vh",
                padding: "1.2vh 2vw",
                background: "rgba(201,168,76,0.15)",
                color: "var(--gold)",
                border: "1px solid rgba(201,168,76,0.25)",
+               minWidth: "100px"
              }}>
             Xem Bảng Giá ↗
           </a>
           <button
             onClick={handleLogout}
-            className="rounded-lg font-bold uppercase tracking-wider cursor-pointer transition-all hover:brightness-110"
+            className="flex-1 md:flex-none rounded-lg font-bold uppercase tracking-wider cursor-pointer transition-all hover:brightness-110 text-footer"
             style={{
-              fontSize: "2vh",
               padding: "1.2vh 2vw",
               background: "rgba(255,100,100,0.15)",
               color: "#ff8888",
               border: "1px solid rgba(255,100,100,0.25)",
+              minWidth: "80px"
             }}>
             Đăng Xuất
           </button>
@@ -235,15 +241,14 @@ export default function AdminPage() {
       </div>
 
       {/* Price Table — same layout as TV display but with inputs */}
-      <table className="w-full flex-1" style={{ borderCollapse: "separate", borderSpacing: "0 0.8vh" }}>
+      <table className="w-full price-table">
         <thead>
           <tr>
             {["Loại Vàng", "Mua Vào", "Bán Ra"].map((h, i) => (
               <th key={h}
-                  className="th-gradient uppercase font-bold text-th"
+                  className="th-gradient uppercase font-bold text-th tv-th"
                   style={{
                     letterSpacing: "0.15em",
-                    padding: "1.5vh 2vw",
                     borderRadius: i === 0 ? "8px 0 0 8px" : i === 2 ? "0 8px 8px 0" : undefined,
                     textAlign: i === 0 ? "left" : "center",
                     width: i === 0 ? "30%" : undefined,
@@ -258,9 +263,8 @@ export default function AdminPage() {
             <tr key={idx} className="animate-row-slide"
                 style={{ animationDelay: `${idx * 0.1 + 0.05}s` }}>
               {/* Type column */}
-              <td className="text-name color-gold-light"
+              <td className="text-name color-gold-light tv-td"
                   style={{
-                    padding: "1.2vh 2vw",
                     fontWeight: 700,
                     letterSpacing: "0.1em",
                     textAlign: "left",
@@ -273,8 +277,7 @@ export default function AdminPage() {
                 {row.name}
               </td>
               {/* Buy input */}
-              <td style={{
-                    padding: "1.2vh 2vw",
+              <td className="tv-td" style={{
                     textAlign: "center",
                     background: "rgba(0,0,0,0.3)",
                     borderTop: "1px solid rgba(201,168,76,0.15)",
@@ -290,8 +293,7 @@ export default function AdminPage() {
                 />
               </td>
               {/* Sell input */}
-              <td style={{
-                    padding: "1.2vh 2vw",
+              <td className="tv-td" style={{
                     textAlign: "center",
                     background: "rgba(0,0,0,0.3)",
                     borderRadius: "0 8px 8px 0",
@@ -314,9 +316,10 @@ export default function AdminPage() {
       </table>
 
       {/* Footer hint */}
-      <div className="text-footer uppercase text-center mt-[1vh]"
+      <div className="text-footer uppercase text-center mt-[2vh]"
            style={{ color: "rgba(201,168,76,0.5)", letterSpacing: "0.2em" }}>
         Chỉnh sửa giá trực tiếp • Nhấn &quot;Lưu Bảng Giá&quot; để cập nhật • Trang TV tự động refresh sau 30 giây
+      </div>
       </div>
     </div>
   );

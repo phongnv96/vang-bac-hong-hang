@@ -14,8 +14,8 @@
   --fs-sub:         3.5vh;
   --fs-clock:       4.5vh;
   --fs-th:          3.5vh;
-  --fs-name:        6vh;
-  --fs-price:       6.5vh;
+  --fs-name:        5vh;
+  --fs-price:       6vh;
   --fs-contact:     2.8vh;
   --fs-contact-val: 3.5vh;
   --fs-footer:      1.8vh;
@@ -44,16 +44,16 @@
 @media (max-width: 640px) {
   :root {
     --fs-title:       24px;
-    --fs-sub:         14px;
-    --fs-clock:       16px;
-    --fs-th:          13px;
-    --fs-name:        18px;
-    --fs-price:       22px;
-    --fs-contact:     11px;
-    --fs-contact-val: 13px;
-    --fs-footer:      10px;
-    --fs-label:       12px;
-    --fs-btn:         14px;
+    --fs-sub:         11px;
+    --fs-clock:       13px;
+    --fs-th:          11px;
+    --fs-name:        12px;
+    --fs-price:       14px;
+    --fs-contact:     10px;
+    --fs-contact-val: 12px;
+    --fs-footer:      9px;
+    --fs-label:       11px;
+    --fs-btn:         13px;
   }
 }
 
@@ -69,10 +69,16 @@ body {
   font-family: 'Roboto Condensed', sans-serif;
 }
 
-/* TV display page: hide cursor + no scroll */
+/* TV display page: hide cursor + no scroll on large screens */
 .tv-display {
   cursor: none;
   overflow: hidden;
+}
+@media (max-width: 1024px) {
+  .tv-display {
+    cursor: auto;
+    overflow: auto;
+  }
 }
 
 /* ===== Shared background ===== */
@@ -115,10 +121,10 @@ body {
   padding: 1vh 1.5vw;
 }
 @media (max-width: 1024px) {
-  .input-price { padding: 10px 16px; }
+  .input-price { padding: 8px 12px; }
 }
 @media (max-width: 640px) {
-  .input-price { padding: 8px 12px; }
+  .input-price { padding: 4px 6px; }
 }
 .input-price:focus {
   box-shadow: 0 0 0 2px var(--gold);
@@ -151,6 +157,49 @@ body {
 }
 @media (max-width: 640px) {
   .admin-dashboard { padding: 12px; }
+}
+
+/* ===== TV Display Layout responsive ===== */
+.tv-content {
+  padding: 4vh 4vw;
+}
+@media (max-width: 1024px) {
+  .tv-content { padding: 24px 20px; }
+}
+@media (max-width: 640px) {
+  .tv-content { padding: 24px 32px; }
+}
+
+.tv-th {
+  padding: 1.2vh 2vw;
+}
+@media (max-width: 1024px) {
+  .tv-th { padding: 12px 16px; }
+}
+@media (max-width: 640px) {
+  .tv-th { padding: 8px 12px; }
+}
+
+.tv-td {
+  padding: 1.2vh 2vw;
+}
+@media (max-width: 1024px) {
+  .tv-td { padding: 10px 16px; }
+}
+@media (max-width: 640px) {
+  .tv-td { padding: 6px 8px; }
+}
+
+/* ===== Table Spacing ===== */
+.price-table {
+  border-collapse: separate;
+  border-spacing: 0 1vh;
+}
+@media (max-width: 1024px) {
+  .price-table { border-spacing: 0 8px; }
+}
+@media (max-width: 640px) {
+  .price-table { border-spacing: 0 4px; }
 }
 
 /* ===== Shimmer animation ===== */

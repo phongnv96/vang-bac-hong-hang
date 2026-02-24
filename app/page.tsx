@@ -68,14 +68,12 @@ export default function Home() {
       ))}
 
       {/* Main content */}
-      <div className="relative z-[3] w-full h-full flex flex-col items-center justify-center text-center gap-[1vh]"
-           style={{ padding: "4vh 4vw" }}>
+      <div className="relative z-[3] w-full min-h-screen flex flex-col items-center justify-center text-center gap-2 md:gap-[1vh] tv-content">
 
         {/* Shop name */}
-        <div className="animate-shimmer uppercase leading-[1.1]"
+        <div className="animate-shimmer uppercase leading-[1.1] text-title"
              style={{
                fontFamily: "'Playfair Display', serif",
-               fontSize: "6vh",
                fontWeight: 900,
                color: "#f5d27a",
                letterSpacing: "0.1em",
@@ -85,10 +83,9 @@ export default function Home() {
         </div>
 
         {/* Subtitle */}
-        <div className="uppercase"
+        <div className="uppercase text-sub"
              style={{
                fontFamily: "'Playfair Display', serif",
-               fontSize: "3.5vh",
                color: "#c9a84c",
                letterSpacing: "0.3em",
              }}>
@@ -103,9 +100,8 @@ export default function Home() {
         </div>
 
         {/* DateTime */}
-        <div className="font-bold text-white mb-[1vh]"
+        <div className="font-bold text-white mb-2 md:mb-[1vh] text-clock"
              style={{
-               fontSize: "4.5vh",
                letterSpacing: "0.15em",
                textShadow: "0 0 15px rgba(255,255,255,0.4)",
              }}>
@@ -113,18 +109,16 @@ export default function Home() {
         </div>
 
         {/* Price Table */}
-        <table className="w-full" style={{ borderCollapse: "separate", borderSpacing: "0 0.5vh" }}>
+        <table className="w-full price-table">
           <thead>
             <tr>
               {["Loại Vàng", "Mua Vào", "Bán Ra"].map((h, i) => (
                 <th key={h}
-                    className="uppercase font-bold"
+                    className="uppercase font-bold text-th tv-th"
                     style={{
                       background: "linear-gradient(135deg, #c9a84c, #f5d27a, #c9a84c)",
                       color: "#3d0000",
-                      fontSize: "3.5vh",
                       letterSpacing: "0.15em",
-                      padding: "1.2vh 2vw",
                       borderRadius: i === 0 ? "8px 0 0 8px" : i === 2 ? "0 8px 8px 0" : undefined,
                       textAlign: i === 0 ? "left" : "center",
                       width: i === 0 ? "30%" : undefined,
@@ -139,9 +133,7 @@ export default function Home() {
               <tr key={idx} className="animate-row-slide"
                   style={{ animationDelay: `${idx * 0.1 + 0.05}s` }}>
                 {/* Type column */}
-                <td style={{
-                      padding: "1vh 2vw",
-                      fontSize: "6vh",
+                <td className="text-name tv-td" style={{
                       fontWeight: 700,
                       color: "#f5d27a",
                       letterSpacing: "0.1em",
@@ -155,10 +147,8 @@ export default function Home() {
                   {row.name}
                 </td>
                 {/* Buy column */}
-                <td className={row.buy ? "text-[#fff176]" : "text-white/30"}
+                <td className={`${row.buy ? "text-price text-[#fff176]" : "text-sub text-white/30"} tv-td`}
                     style={{
-                      padding: "1vh 2vw",
-                      fontSize: row.buy ? "6.5vh" : "3vh",
                       fontWeight: 700,
                       textAlign: "center",
                       background: "rgba(0,0,0,0.3)",
@@ -168,10 +158,8 @@ export default function Home() {
                   {row.buy ? `${formatVND(row.buy)}đ` : "—"}
                 </td>
                 {/* Sell column */}
-                <td className={row.sell ? "text-[#66ff99]" : "text-white/30"}
+                <td className={`${row.sell ? "text-price text-[#66ff99]" : "text-sub text-white/30"} tv-td`}
                     style={{
-                      padding: "1vh 2vw",
-                      fontSize: row.sell ? "6.5vh" : "3vh",
                       fontWeight: 700,
                       textAlign: "center",
                       background: "rgba(0,0,0,0.3)",
@@ -188,32 +176,31 @@ export default function Home() {
         </table>
 
         {/* Contact info */}
-        <div className="flex items-center justify-center gap-[3vw] uppercase font-bold"
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-[3vw] uppercase font-bold text-contact"
              style={{
                marginTop: "0.5vh",
                marginBottom: "0.5vh",
-               fontSize: "2.8vh",
                color: "#c9a84c",
                letterSpacing: "0.1em",
              }}>
           <div>
             Liên hệ:{" "}
-            <span className="font-black" style={{ fontSize: "3.5vh", color: "#f5d27a", textShadow: "0 0 15px rgba(245,210,122,0.4)", marginLeft: "1vw", letterSpacing: "0.05em" }}>
+            <span className="font-black text-contact-val" style={{ color: "#f5d27a", textShadow: "0 0 15px rgba(245,210,122,0.4)", marginLeft: "1vw", letterSpacing: "0.05em" }}>
               0977975626
             </span>
           </div>
-          <div className="font-normal" style={{ color: "rgba(201,168,76,0.3)" }}>|</div>
+          <div className="font-normal hidden sm:block" style={{ color: "rgba(201,168,76,0.3)" }}>|</div>
           <div>
             Địa chỉ:{" "}
-            <span className="font-black" style={{ fontSize: "3.5vh", color: "#f5d27a", textShadow: "0 0 15px rgba(245,210,122,0.4)", marginLeft: "1vw", letterSpacing: "0.05em" }}>
+            <span className="font-black text-contact-val" style={{ color: "#f5d27a", textShadow: "0 0 15px rgba(245,210,122,0.4)", marginLeft: "1vw", letterSpacing: "0.05em" }}>
               xã Hải Lựu, tỉnh Phú Thọ
             </span>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="uppercase" style={{ fontSize: "1.8vh", color: "rgba(201,168,76,0.5)", letterSpacing: "0.2em" }}>
-          Giá có thể thay đổi theo thị trường • Vui lòng liên hệ để biết thêm chi tiết
+        <div className="uppercase text-footer" style={{ color: "rgba(201,168,76,0.5)", letterSpacing: "0.2em" }}>
+          Giá có thể thay đổi theo thị trường • Vui lòng liên hệ để biết chi tiết
         </div>
       </div>
     </div>
