@@ -82,10 +82,11 @@ export default function Home() {
           Vàng Bạc Hồng Hằng
         </div>
 
-        {/* Subtitle & Logo & DateTime */}
-        <div className="flex flex-row flex-wrap items-center justify-between gap-x-3 md:gap-x-6 gap-y-2 w-full px-2">
+        {/* Responsive Header: Stacked on Mobile/Desktop, One-line on TV displays (xl+) */}
+        <div className="flex flex-col lg:flex-row items-center justify-between w-full px-2 mt-2 gap-y-1 xl:gap-y-0">
+          
           {/* Subtitle */}
-          <div className="uppercase text-sub"
+          <div className="uppercase text-sub mb-1 xl:mb-0"
                style={{
                  fontFamily: "'Playfair Display', serif",
                  color: "#ffe599", /* Vàng sáng rực */
@@ -97,9 +98,9 @@ export default function Home() {
           </div>
 
           {/* DateTime */}
-          <div className="font-bold text-white text-clock"
+          <div className="font-bold text-white mb-2 xl:mb-0 md:mb-[1vh] text-clock"
                style={{
-                 letterSpacing: "0.1em",
+                 letterSpacing: "0.15em",
                  textShadow: "0 0 15px rgba(255,255,255,0.4)",
                  whiteSpace: "nowrap"
                }}>
