@@ -13,9 +13,9 @@
   --fs-title:       6vh;
   --fs-sub:         3.5vh;
   --fs-clock:       4.5vh;
-  --fs-th:          3.5vh;
+  --fs-th:          5vh;
   --fs-name:        5vh;
-  --fs-price:       7vh;
+  --fs-price:       7.5vh;
   --fs-contact:     2.8vh;
   --fs-contact-val: 3.5vh;
   --fs-footer:      1.8vh;
@@ -29,9 +29,9 @@
     --fs-title:       32px;
     --fs-sub:         18px;
     --fs-clock:       22px;
-    --fs-th:          16px;
+    --fs-th:          24px;
     --fs-name:        24px;
-    --fs-price:       28px;
+    --fs-price:       40px;
     --fs-contact:     14px;
     --fs-contact-val: 16px;
     --fs-footer:      12px;
@@ -46,9 +46,9 @@
     --fs-title:       24px;
     --fs-sub:         11px;
     --fs-clock:       13px;
-    --fs-th:          11px;
+    --fs-th:          12px;
     --fs-name:        12px;
-    --fs-price:       14px;
+    --fs-price:       28px;
     --fs-contact:     10px;
     --fs-contact-val: 12px;
     --fs-footer:      9px;
@@ -164,7 +164,7 @@ body {
   padding: 4vh 4vw;
 }
 @media (max-width: 1024px) {
-  .tv-content { padding: 24px 20px; }
+  .tv-content { padding: 24px 32px; }
 }
 @media (max-width: 640px) {
   .tv-content { padding: 24px 32px; }
@@ -182,20 +182,30 @@ body {
 }
 
 .tv-td {
-  padding: 0.5vh 2vw;
+  padding: 0 2vw;
+  height: 11vh;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+@media (max-width: 1024px) {
+  .tv-td { height: 54px; }
 }
 
 @media (max-width: 640px) {
-  .tv-td { padding: 6px 8px; }
+  .tv-td { 
+    padding: 0 8px; 
+    height: 40px; 
+  }
 }
 
 /* ===== Table Spacing ===== */
 .price-table {
   border-collapse: separate;
-  border-spacing: 0 1vh;
+  border-spacing: 0 0.5vh;
 }
 @media (max-width: 1024px) {
-  .price-table { border-spacing: 0 8px; }
+  .price-table { border-spacing: 0 4px; }
 }
 @media (max-width: 640px) {
   .price-table { border-spacing: 0 4px; }
