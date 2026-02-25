@@ -83,7 +83,7 @@ export default function Home() {
         </div>
 
         {/* Responsive Header: Stacked on Mobile/Desktop, One-line on TV displays (xl+) */}
-        <div className="flex flex-col lg:flex-row items-center justify-between w-full px-2 mt-2 gap-y-1 xl:gap-y-0">
+        <div className="flex flex-col md:flex-row items-center justify-between w-full px-2 mt-2 gap-y-1 xl:gap-y-0">
           
           {/* Subtitle */}
           <div className="uppercase text-sub mb-1 xl:mb-0"
