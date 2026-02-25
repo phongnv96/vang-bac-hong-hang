@@ -184,9 +184,7 @@ body {
 .tv-td {
   padding: 0.5vh 2vw;
 }
-@media (max-width: 1024px) {
-  .tv-td { padding: 10px 16px; }
-}
+
 @media (max-width: 640px) {
   .tv-td { padding: 6px 8px; }
 }
