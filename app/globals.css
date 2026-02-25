@@ -31,7 +31,7 @@
     --fs-clock:       22px;
     --fs-th:          24px;
     --fs-name:        24px;
-    --fs-price:       40px;
+    --fs-price:       32px;
     --fs-contact:     14px;
     --fs-contact-val: 16px;
     --fs-footer:      12px;
@@ -48,7 +48,7 @@
     --fs-clock:       13px;
     --fs-th:          12px;
     --fs-name:        12px;
-    --fs-price:       28px;
+    --fs-price:       16px;
     --fs-contact:     10px;
     --fs-contact-val: 12px;
     --fs-footer:      9px;
@@ -164,7 +164,7 @@ body {
   padding: 4vh 4vw;
 }
 @media (max-width: 1024px) {
-  .tv-content { padding: 24px 32px; }
+  .tv-content { padding: 24px 48px; }
 }
 @media (max-width: 640px) {
   .tv-content { padding: 24px 32px; }
@@ -202,10 +202,10 @@ body {
 /* ===== Table Spacing ===== */
 .price-table {
   border-collapse: separate;
-  border-spacing: 0 0.5vh;
+  border-spacing: 0 1vh;
 }
 @media (max-width: 1024px) {
-  .price-table { border-spacing: 0 4px; }
+  .price-table { border-spacing: 0 6px; }
 }
 @media (max-width: 640px) {
   .price-table { border-spacing: 0 4px; }
