@@ -15,7 +15,7 @@
   --fs-clock:       4.5vh;
   --fs-th:          3.5vh;
   --fs-name:        5vh;
-  --fs-price:       6vh;
+  --fs-price:       7vh;
   --fs-contact:     2.8vh;
   --fs-contact-val: 3.5vh;
   --fs-footer:      1.8vh;
@@ -173,6 +173,7 @@ body {
 .tv-th {
   padding: 1.2vh 2vw;
 }
+
 @media (max-width: 1024px) {
   .tv-th { padding: 12px 16px; }
 }
@@ -181,7 +182,7 @@ body {
 }
 
 .tv-td {
-  padding: 1.2vh 2vw;
+  padding: 0.5vh 2vw;
 }
 @media (max-width: 1024px) {
   .tv-td { padding: 10px 16px; }

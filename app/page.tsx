@@ -82,30 +82,36 @@ export default function Home() {
           Vàng Bạc Hồng Hằng
         </div>
 
-        {/* Subtitle */}
-        <div className="uppercase text-sub"
-             style={{
-               fontFamily: "'Playfair Display', serif",
-               color: "#c9a84c",
-               letterSpacing: "0.3em",
-             }}>
-          ✦ Bảng Giá Vàng ✦
+        {/* Subtitle & Logo & DateTime */}
+        <div className="flex flex-row flex-wrap items-center justify-between gap-x-3 md:gap-x-6 gap-y-2 w-full px-2">
+          {/* Subtitle */}
+          <div className="uppercase text-sub"
+               style={{
+                 fontFamily: "'Playfair Display', serif",
+                 color: "#ffe599", /* Vàng sáng rực */
+                 letterSpacing: "0.15em",
+                 textShadow: "0 0 10px rgba(255,229,153,0.6)", /* Thêm độ phát sáng (glow) */
+                 whiteSpace: "nowrap"
+               }}>
+            ✦ Bảng Giá Vàng ✦
+          </div>
+
+          {/* DateTime */}
+          <div className="font-bold text-white text-clock"
+               style={{
+                 letterSpacing: "0.1em",
+                 textShadow: "0 0 15px rgba(255,255,255,0.4)",
+                 whiteSpace: "nowrap"
+               }}>
+            {dateTime || "--/--/---- | --:--:--"}
+          </div>
         </div>
 
         {/* Divider */}
-        <div className="flex items-center gap-4 w-3/4">
+        <div className="flex items-center gap-4 w-[90%] md:w-3/4 mb-2 md:mb-[1vh]">
           <div className="flex-1 h-px" style={{ background: "linear-gradient(90deg, transparent, #c9a84c, transparent)" }} />
-          <div className="w-2.5 h-2.5 rotate-45 shrink-0" style={{ background: "#c9a84c" }} />
+          <div className="w-2 h-2 md:w-2.5 md:h-2.5 rotate-45 shrink-0" style={{ background: "#c9a84c" }} />
           <div className="flex-1 h-px" style={{ background: "linear-gradient(90deg, transparent, #c9a84c, transparent)" }} />
-        </div>
-
-        {/* DateTime */}
-        <div className="font-bold text-white mb-2 md:mb-[1vh] text-clock"
-             style={{
-               letterSpacing: "0.15em",
-               textShadow: "0 0 15px rgba(255,255,255,0.4)",
-             }}>
-          {dateTime || "--/--/---- | --:--:--"}
         </div>
 
         {/* Price Table */}
