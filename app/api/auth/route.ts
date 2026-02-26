@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/app/lib/supabase";
+import { supabase } from "@/configs/supabase";
 
 // POST — kiểm tra username/password
 export async function POST(request: Request) {

@@ -1,0 +1,7 @@
+.line {
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+
+.diamond {
+  background: var(--gold);
+}
