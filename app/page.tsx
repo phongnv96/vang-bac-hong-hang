@@ -3,7 +3,6 @@
 
 import { supabase } from "./lib/supabase";
 import { DEFAULT_PRICES, formatVND, type PriceRow } from "./lib/prices";
-import ClockClient from "./components/ClockClient";
 
 async function fetchPrices(): Promise<PriceRow[]> {
   try {
@@ -49,11 +48,11 @@ export default async function Home() {
       {/* Auto-refresh every 30s — works without JS */}
       <meta httpEquiv="refresh" content="30" />
 
-      {/* Double border frame */}
+      {/* Double border frame — dùng top/right/bottom/left thay vì inset (inset không support WebView 66) */}
       <div className="absolute pointer-events-none z-[1]"
-           style={{ inset: "1.5vh", border: "3px solid #c9a84c" }} />
+           style={{ top: "1.5vh", right: "1.5vh", bottom: "1.5vh", left: "1.5vh", border: "3px solid #c9a84c" }} />
       <div className="absolute pointer-events-none z-[1]"
-           style={{ inset: "2.5vh", border: "1px solid rgba(201,168,76,0.4)" }} />
+           style={{ top: "2.5vh", right: "2.5vh", bottom: "2.5vh", left: "2.5vh", border: "1px solid rgba(201,168,76,0.4)" }} />
 
       {/* Main content */}
       <div className="relative z-[3] w-full min-h-screen flex flex-col items-center justify-center text-center gap-2 md:gap-[1vh] tv-content">
@@ -85,8 +84,18 @@ export default async function Home() {
             ✦ Bảng Giá Vàng ✦
           </div>
 
-          {/* Clock — real-time if JS works, server time + meta-refresh if not */}
-          <ClockClient serverTime={serverTime} />
+          {/* Clock — vanilla JS tick, server time là fallback nếu JS không chạy */}
+          <div
+            id="clock"
+            className="font-bold text-white mb-2 xl:mb-0 md:mb-[1vh] text-clock"
+            style={{
+              letterSpacing: "0.15em",
+              textShadow: "0 0 15px rgba(255,255,255,0.4)",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {serverTime}
+          </div>
         </div>
 
         {/* Divider */}
@@ -191,6 +200,24 @@ export default async function Home() {
           <i>Giá có thể thay đổi theo thị trường • Vui lòng liên hệ để biết chi tiết</i>
         </div>
       </div>
+
+      {/* Vanilla JS clock — bypass React hydration hoàn toàn */}
+      <script dangerouslySetInnerHTML={{ __html: `
+        (function() {
+          function tick() {
+            var now = new Date();
+            var d = String(now.getDate()).padStart(2, '0');
+            var mo = String(now.getMonth() + 1).padStart(2, '0');
+            var h = String(now.getHours()).padStart(2, '0');
+            var m = String(now.getMinutes()).padStart(2, '0');
+            var s = String(now.getSeconds()).padStart(2, '0');
+            var el = document.getElementById('clock');
+            if (el) el.textContent = d + '/' + mo + '/' + now.getFullYear() + '  |  ' + h + ':' + m + ':' + s;
+          }
+          tick();
+          setInterval(tick, 1000);
+        })();
+      ` }} />
     </div>
   );
 }
