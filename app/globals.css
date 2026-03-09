@@ -35,62 +35,50 @@
   --color-chart-5: hsl(var(--chart-5));
 
   --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
+  --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-heading), ui-serif, Georgia, serif;
+  --font-price-board: var(--font-roboto-condensed), "Roboto Condensed", sans-serif;
 }
 
 /* 2. Set token values per theme */
 @layer base {
   :root {
-    --background: 40 20% 98%;
-    --foreground: 0 10% 10%;
-    --card: 40 15% 97%;
-    --card-foreground: 0 10% 10%;
-    --popover: 40 20% 98%;
-    --popover-foreground: 0 10% 10%;
-    --primary: 43 55% 54%;
-    --primary-foreground: 0 100% 99%;
-    --secondary: 40 30% 92%;
-    --secondary-foreground: 0 10% 15%;
-    --muted: 40 10% 95%;
-    --muted-foreground: 0 5% 45%;
-    --accent: 43 78% 72%;
-    --accent-foreground: 0 100% 12%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 40 20% 88%;
-    --input: 40 20% 88%;
-    --ring: 43 55% 54%;
-    --radius: 0.625rem;
-
-    --chart-1: 43 55% 54%;
-    --chart-2: 43 78% 72%;
-    --chart-3: 0 100% 12%;
-    --chart-4: 40 30% 70%;
-    --chart-5: 0 84% 60%;
-  }
-
-  .dark {
-    --background: 0 100% 5%;
-    --foreground: 40 50% 90%;
+    /* Luxury Red & Gold Theme (Dark by default) */
+    --background: 0 100% 5.1%; /* #1a0000 - Red Deep */
+    --foreground: 44 50% 90%; /* Light gold/cream text */
     --card: 0 100% 8%;
-    --card-foreground: 40 50% 90%;
+    --card-foreground: 44 50% 90%;
     --popover: 0 100% 8%;
-    --popover-foreground: 40 50% 90%;
-    --primary: 43 55% 54%;
-    --primary-foreground: 0 100% 5%;
-    --secondary: 0 50% 15%;
-    --secondary-foreground: 40 50% 90%;
-    --muted: 0 30% 15%;
-    --muted-foreground: 40 10% 60%;
-    --accent: 43 78% 72%;
-    --accent-foreground: 0 100% 5%;
-    --destructive: 0 63% 31%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 0 30% 18%;
-    --input: 0 30% 18%;
-    --ring: 43 55% 54%;
+    --popover-foreground: 44 50% 90%;
+    
+    /* Primary is Gold */
+    --primary: 44.2 54.3% 54.3%; /* #c9a84c */
+    --primary-foreground: 0 100% 5.1%;
+    
+    /* Secondary/Muted is Red Dark */
+    --secondary: 0 100% 12%; /* #3d0000 */
+    --secondary-foreground: 44.2 54.3% 54.3%; 
+    --muted: 0 100% 12%;
+    --muted-foreground: 44 30% 60%;
+    
+    --accent: 0 100% 16%;
+    --accent-foreground: 44.2 54.3% 54.3%;
+    
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 44 20% 90%;
+    
+    --border: 44 54% 20%; /* Dark gold border */
+    --input: 0 100% 15%;
+    --ring: 44.2 54.3% 54.3%;
+    --radius: 0.25rem; /* sharper, more elegant corners */
+
+    --chart-1: 44.2 54.3% 54.3%;
+    --chart-2: 0 100% 12%;
+    --chart-3: 44 70% 70%;
+    --chart-4: 0 100% 20%;
+    --chart-5: 44 50% 40%;
   }
 
   /* Base border color — replaces @apply border-border */
@@ -169,7 +157,6 @@ html, body {
 
 body {
   background: var(--red-deep);
-  font-family: 'Roboto Condensed', sans-serif;
 }
 
 /* ===== Shared background ===== */

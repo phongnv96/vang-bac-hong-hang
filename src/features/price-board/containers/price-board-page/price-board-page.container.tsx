@@ -14,7 +14,7 @@ export function PriceBoardPage() {
   const dateTime = useClock();
 
   return (
-    <div className={`${styles.tvDisplay} bg-theme w-screen h-screen flex flex-col items-center justify-center relative overflow-hidden`}>
+    <div className={`${styles.tvDisplay} bg-theme w-screen h-screen flex flex-col items-center justify-center relative overflow-hidden font-price-board`}>
 
       {/* Double border frame */}
       <div className={`absolute pointer-events-none z-[1] ${styles.frameOuter}`} />

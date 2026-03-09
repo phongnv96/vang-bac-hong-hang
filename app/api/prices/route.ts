@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/configs/supabase";
+import { supabase } from "@/lib/supabase";
 import { DEFAULT_PRICES } from "@/configs/prices";
 
 function getTodayDate(): string {

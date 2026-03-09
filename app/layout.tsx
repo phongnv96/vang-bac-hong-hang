@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import { Playfair_Display, Be_Vietnam_Pro } from "next/font/google";
+import { Cormorant_Garamond, Montserrat, Roboto_Condensed, Playfair_Display } from "next/font/google";
 import "./globals.css";
 
 /* ──────────────────────────────────────────────
    Font Configuration (self-hosted via next/font)
    ────────────────────────────────────────────── */
 
-/** Display / Heading font — serif, luxury feel */
+/** Playfair Display — for Price Board Titles */
 const playfair = Playfair_Display({
   subsets: ["latin", "vietnamese"],
   weight: ["700", "900"],
@@ -14,11 +14,27 @@ const playfair = Playfair_Display({
   display: "swap",
 });
 
-/** Body font — sans-serif, excellent Vietnamese support */
-const beVietnam = Be_Vietnam_Pro({
+/** Display / Heading font — serif, luxury feel */
+const cormorant = Cormorant_Garamond({
   subsets: ["latin", "vietnamese"],
-  weight: ["400", "500", "600", "700", "800", "900"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-heading",
+  display: "swap",
+});
+
+/** Body font — sans-serif, modern and elegant */
+const montserrat = Montserrat({
+  subsets: ["latin", "vietnamese"],
+  weight: ["300", "400", "500", "600", "700"],
   variable: "--font-body",
+  display: "swap",
+});
+
+/** Price Board font — technical, condensed */
+const robotoCondensed = Roboto_Condensed({
+  subsets: ["latin", "vietnamese"],
+  weight: ["300", "400", "500", "700"],
+  variable: "--font-roboto-condensed",
   display: "swap",
 });
 
@@ -62,8 +78,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="vi" className={`${playfair.variable} ${beVietnam.variable}`}>
-      <body className="font-(family-name:--font-body) antialiased">
+    <html lang="vi" className={`${cormorant.variable} ${montserrat.variable} ${robotoCondensed.variable} ${playfair.variable} dark`}>
+      <body className="font-sans antialiased">
         {children}
       </body>
     </html>
