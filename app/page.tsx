@@ -52,7 +52,7 @@ export default function Home() {
            style={{ inset: "2.5vh", border: "1px solid rgba(201,168,76,0.4)" }} />
 
       {/* Corner decorations */}
-      {[
+      {/* {[
         { pos: "top-[2.8vh] left-[2.8vh]", transform: "" },
         { pos: "top-[2.8vh] right-[2.8vh]", transform: "scaleX(-1)" },
         { pos: "bottom-[2.8vh] left-[2.8vh]", transform: "scaleY(-1)" },
@@ -65,7 +65,7 @@ export default function Home() {
             <circle cx="5" cy="5" r="4" fill="#c9a84c" />
           </svg>
         </div>
-      ))}
+      ))} */}
 
       {/* Main content */}
       <div className="relative z-[3] w-full min-h-screen flex flex-col items-center justify-center text-center gap-2 md:gap-[1vh] tv-content">
