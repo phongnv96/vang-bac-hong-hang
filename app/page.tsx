@@ -69,8 +69,8 @@ export default async function Home() {
           Vàng Bạc Hồng Hằng
         </div>
 
-        {/* Header: subtitle + clock */}
-        <div className="flex flex-col md:flex-row items-center justify-between w-full px-2 mt-2 gap-y-1 xl:gap-y-0">
+        {/* Header: subtitle + clock — dùng margin thay gap (flexbox gap không support WebView 66) */}
+        <div className="flex flex-col md:flex-row items-center justify-between w-full px-2 mt-2">
 
           {/* Subtitle */}
           <div className="uppercase text-sub mb-1 xl:mb-0"
@@ -98,11 +98,11 @@ export default async function Home() {
           </div>
         </div>
 
-        {/* Divider */}
-        <div className="flex items-center gap-4 w-[90%] md:w-3/4 mb-2 md:mb-[1vh]">
-          <div className="flex-1 h-px" style={{ background: "linear-gradient(90deg, transparent, #c9a84c, transparent)" }} />
-          <div className="w-2 h-2 md:w-2.5 md:h-2.5 rotate-45 shrink-0" style={{ background: "#c9a84c" }} />
-          <div className="flex-1 h-px" style={{ background: "linear-gradient(90deg, transparent, #c9a84c, transparent)" }} />
+        {/* Divider — dùng margin trực tiếp thay vì gap-4 */}
+        <div className="flex items-center w-[90%] md:w-3/4 mb-2 md:mb-[1vh]">
+          <div className="flex-1 h-px" style={{ background: "linear-gradient(90deg, transparent, #c9a84c, transparent)", marginRight: "1rem" }} />
+          <div className="w-2 h-2 md:w-2.5 md:h-2.5 rotate-45" style={{ background: "#c9a84c", flexShrink: 0 }} />
+          <div className="flex-1 h-px" style={{ background: "linear-gradient(90deg, transparent, #c9a84c, transparent)", marginLeft: "1rem" }} />
         </div>
 
         {/* Price Table */}
@@ -143,22 +143,24 @@ export default async function Home() {
                     }}>
                   {row.name}
                 </td>
-                {/* Buy column */}
-                <td className={`${row.buy ? "text-price text-[#fff176]" : "text-sub text-white/30"} tv-td`}
+                {/* Buy column — màu dùng rgba() thay text-white/30 (color-mix không support WebView 66) */}
+                <td className={`${row.buy ? "text-price" : "text-sub"} tv-td`}
                     style={{
                       fontWeight: 700,
                       textAlign: "center",
+                      color: row.buy ? "#fff176" : "rgba(255,255,255,0.3)",
                       background: "rgba(0,0,0,0.3)",
                       borderTop: "1px solid rgba(201,168,76,0.15)",
                       borderBottom: "1px solid rgba(201,168,76,0.15)",
                     }}>
                   {row.buy ? `${formatVND(row.buy)}đ` : "—"}
                 </td>
-                {/* Sell column */}
-                <td className={`${row.sell ? "text-price text-[#66ff99]" : "text-sub text-white/30"} tv-td`}
+                {/* Sell column — màu dùng rgba() thay text-white/30 */}
+                <td className={`${row.sell ? "text-price" : "text-sub"} tv-td`}
                     style={{
                       fontWeight: 700,
                       textAlign: "center",
+                      color: row.sell ? "#66ff99" : "rgba(255,255,255,0.3)",
                       background: "rgba(0,0,0,0.3)",
                       borderRadius: "0 8px 8px 0",
                       borderRight: "3px solid rgba(201,168,76,0.3)",
@@ -172,8 +174,8 @@ export default async function Home() {
           </tbody>
         </table>
 
-        {/* Contact info */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-[3vw] uppercase font-bold text-contact"
+        {/* Contact info — dùng margin thay gap (flexbox gap không support WebView 66) */}
+        <div className="flex flex-col sm:flex-row items-center justify-center uppercase font-bold text-contact"
              style={{
                marginTop: "0.5vh",
                marginBottom: "0.5vh",
@@ -186,7 +188,7 @@ export default async function Home() {
               0977975626
             </span>
           </div>
-          <div className="font-normal hidden sm:block" style={{ color: "rgba(201,168,76,0.3)" }}>|</div>
+          <div style={{ marginLeft: "1.5vw", marginRight: "1.5vw", color: "rgba(201,168,76,0.3)" }}>|</div>
           <div>
             Địa chỉ:{" "}
             <span className="font-black text-contact-val" style={{ color: "#f5d27a", textShadow: "0 0 15px rgba(245,210,122,0.4)", marginLeft: "1vw", letterSpacing: "0.05em" }}>
