@@ -52,9 +52,6 @@ export default async function Home() {
         cursor: "none",
       }}
     >
-      {/* Auto-refresh every 30s */}
-      <meta httpEquiv="refresh" content="30" />
-
       {/* Double border frame */}
       <div style={{ position: "absolute", pointerEvents: "none", zIndex: 1, top: "1.5vh", right: "1.5vh", bottom: "1.5vh", left: "1.5vh", border: "3px solid #c9a84c" }} />
       <div style={{ position: "absolute", pointerEvents: "none", zIndex: 1, top: "2.5vh", right: "2.5vh", bottom: "2.5vh", left: "2.5vh", border: "1px solid rgba(201,168,76,0.4)" }} />
