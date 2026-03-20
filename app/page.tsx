@@ -1,22 +1,24 @@
 // Server Component — no "use client"
 // All layout uses inline styles — Tailwind v4 @layer not supported in WebView 66
 
-import { supabase } from "./lib/supabase";
+import { headers } from "next/headers";
 import { DEFAULT_PRICES, formatVND, type PriceRow } from "./lib/prices";
 
 async function fetchPrices(): Promise<PriceRow[]> {
   try {
-    const now = new Date();
-    const y = now.getFullYear();
-    const m = String(now.getMonth() + 1).padStart(2, "0");
-    const d = String(now.getDate()).padStart(2, "0");
-    const today = `${y}-${m}-${d}`;
-    const { data, error } = await supabase
-      .from("gold_prices")
-      .select("prices")
-      .eq("date", today)
-      .single();
-    if (error || !data) return DEFAULT_PRICES.map((p) => ({ ...p, buy: "", sell: "" }));
+    const requestHeaders = await headers();
+    const host = requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host");
+    const protocol = requestHeaders.get("x-forwarded-proto") ?? "http";
+    if (!host) return DEFAULT_PRICES.map((p) => ({ ...p, buy: "", sell: "" }));
+
+    const res = await fetch(`${protocol}://${host}/api/prices`, { cache: "no-store" });
+    if (!res.ok) return DEFAULT_PRICES.map((p) => ({ ...p, buy: "", sell: "" }));
+
+    const data = await res.json();
+    if (!data?.prices || !Array.isArray(data.prices)) {
+      return DEFAULT_PRICES.map((p) => ({ ...p, buy: "", sell: "" }));
+    }
+
     return data.prices as PriceRow[];
   } catch {
     return DEFAULT_PRICES.map((p) => ({ ...p, buy: "", sell: "" }));
@@ -196,6 +198,8 @@ export default async function Home() {
                 </td>
                 <td
                   className={row.buy ? "text-price tv-td" : "text-sub tv-td"}
+                  data-row={idx}
+                  data-field="buy"
                   style={{
                     fontWeight: 700,
                     textAlign: "center",
@@ -209,6 +213,8 @@ export default async function Home() {
                 </td>
                 <td
                   className={row.sell ? "text-price tv-td" : "text-sub tv-td"}
+                  data-row={idx}
+                  data-field="sell"
                   style={{
                     fontWeight: 700,
                     textAlign: "center",
@@ -267,6 +273,10 @@ export default async function Home() {
       {/* Vanilla JS clock — bypass React hydration */}
       <script dangerouslySetInnerHTML={{ __html: `
         (function() {
+          function formatVND(value) {
+            return String(value).replace(/\\B(?=(\\d{3})+(?!\\d))/g, '.');
+          }
+
           function tick() {
             var now = new Date();
             var d = String(now.getDate()).padStart(2, '0');
@@ -277,8 +287,32 @@ export default async function Home() {
             var el = document.getElementById('clock');
             if (el) el.textContent = d + '/' + mo + '/' + now.getFullYear() + '  |  ' + h + ':' + m + ':' + s;
           }
+
+          function updatePriceCells(prices) {
+            if (!Array.isArray(prices)) return;
+            for (var i = 0; i < prices.length; i++) {
+              var row = prices[i] || {};
+              var buyCell = document.querySelector('[data-row="' + i + '"][data-field="buy"]');
+              var sellCell = document.querySelector('[data-row="' + i + '"][data-field="sell"]');
+
+              if (buyCell) buyCell.textContent = row.buy ? formatVND(row.buy) + 'đ' : '—';
+              if (sellCell) sellCell.textContent = row.sell ? formatVND(row.sell) + 'đ' : '—';
+            }
+          }
+
+          async function loadPrices() {
+            try {
+              var res = await fetch('/api/prices', { cache: 'no-store' });
+              if (!res.ok) return;
+              var data = await res.json();
+              updatePriceCells(data && data.prices);
+            } catch (e) {}
+          }
+
           tick();
+          loadPrices();
           setInterval(tick, 1000);
+          setInterval(loadPrices, 30000);
         })();
       ` }} />
     </div>
