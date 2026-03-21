@@ -335,7 +335,7 @@
           responsive: true,
           maintainAspectRatio: false,
           animation: false,
-          layout: { padding: { top: 20, bottom: 8, left: 8, right: 8 } },
+          layout: { padding: { top: 20, bottom: 36, left: 8, right: 8 } },
           scales: {
             x: {
               ticks: {
@@ -387,8 +387,10 @@
     }
     if (h < 80) {
       var ih = window.innerHeight || (document.documentElement && document.documentElement.clientHeight) || 600;
-      /* Ưu tiên chart cao trên TV (trước ~34% viewport → ~48%) */
-      h = Math.max(520, Math.round(ih * 0.58));
+      h = Math.max(380, Math.round(ih * 0.5));
+    }
+    if (wrap && wrap.clientHeight >= 80) {
+      h = Math.min(h, wrap.clientHeight);
     }
     return { w: Math.floor(w), h: Math.floor(h) };
   }
