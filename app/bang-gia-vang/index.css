@@ -247,6 +247,11 @@
   overflow: hidden;
 }
 
+/* Slide bảng giá: căn nội dung giữa màn hình theo chiều dọc */
+#slide-table {
+  justify-content: center;
+}
+
 .tv-slide-panel-active {
   opacity: 1;
   z-index: 2;
