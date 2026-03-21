@@ -55,9 +55,6 @@ export default async function Home() {
         overflow: "hidden",
         width: "100vw",
         height: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "stretch",
         cursor: "none",
       }}
     >
@@ -65,7 +62,14 @@ export default async function Home() {
       <div style={{ position: "absolute", pointerEvents: "none", zIndex: 1, top: "1.5vh", right: "1.5vh", bottom: "1.5vh", left: "1.5vh", border: "3px solid #c9a84c" }} />
       <div style={{ position: "absolute", pointerEvents: "none", zIndex: 1, top: "2.5vh", right: "2.5vh", bottom: "2.5vh", left: "2.5vh", border: "1px solid rgba(201,168,76,0.4)" }} />
 
-      {/* Main content */}
+      {/*
+        Main content — grid with 4 explicit rows:
+          auto  → shop title
+          auto  → header (subtitle + clock)
+          auto  → divider
+          1fr   → slides section (table ↔ chart), fills all remaining height
+        Height: 100vh so the 1fr row resolves to a concrete px value on WebView 66.
+      */}
       <div
         className="tv-content"
         style={{
@@ -73,15 +77,16 @@ export default async function Home() {
           zIndex: 3,
           width: "100%",
           height: "100vh",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          textAlign: "center",
           boxSizing: "border-box",
-          overflow: "hidden",
+          textAlign: "center",
+          display: "grid",
+          gridTemplateColumns: "1fr",
+          gridTemplateRows: "auto auto auto 1fr",
+          alignItems: "start",
+          justifyItems: "center",
         }}
       >
-        {/* Shop name */}
+        {/* Row 1 — Shop name */}
         <div
           className="animate-shimmer text-title"
           style={{
@@ -93,21 +98,21 @@ export default async function Home() {
             textTransform: "uppercase",
             lineHeight: 1.1,
             width: "100%",
+            paddingTop: "1.2vh",
           }}
         >
           Vàng Bạc Hồng Hằng
         </div>
 
-        <div className="tv-center-stack">
-        {/* Header row: subtitle LEFT + clock RIGHT */}
+        {/* Row 2 — Subtitle LEFT + clock RIGHT */}
         <div
-          className="tv-header-bar"
           style={{
-            display: "flex",
-            flexDirection: "row",
-            alignItems: "center",
+            display: "grid",
+            gridTemplateColumns: "auto auto",
             justifyContent: "space-between",
+            alignItems: "center",
             width: "100%",
+            padding: "0 0.5vw",
             marginTop: "1vh",
           }}
         >
@@ -126,7 +131,7 @@ export default async function Home() {
             ✦ Bảng Giá Vàng ✦
           </div>
 
-          {/* Clock — vanilla JS, server time as fallback */}
+          {/* Clock — vanilla JS updates this, server time as SSR fallback */}
           <div
             id="clock"
             className="text-clock"
@@ -142,30 +147,33 @@ export default async function Home() {
           </div>
         </div>
 
-        {/* Divider — cùng bề ngang bảng (trước đây 90% lệch so với bảng 100%) */}
+        {/* Row 3 — Divider */}
         <div
-          className="tv-divider-row"
           style={{
-            display: "flex",
+            display: "grid",
+            gridTemplateColumns: "1fr auto 1fr",
             alignItems: "center",
-            width: "100%",
+            width: "90%",
             marginTop: "1vh",
-            marginBottom: "1vh",
+            marginBottom: "0.5vh",
           }}
         >
-          <div style={{ flex: 1, height: "1px", background: "linear-gradient(90deg, transparent, #c9a84c, transparent)", marginRight: "1rem" }} />
-          <div style={{ width: "10px", height: "10px", background: "#c9a84c", transform: "rotate(45deg)", flexShrink: 0 }} />
-          <div style={{ flex: 1, height: "1px", background: "linear-gradient(90deg, transparent, #c9a84c, transparent)", marginLeft: "1rem" }} />
+          <div style={{ height: "1px", background: "linear-gradient(90deg, transparent, #c9a84c, transparent)", marginRight: "1rem" }} />
+          <div style={{ width: "10px", height: "10px", background: "#c9a84c", transform: "rotate(45deg)" }} />
+          <div style={{ height: "1px", background: "linear-gradient(90deg, transparent, #c9a84c, transparent)", marginLeft: "1rem" }} />
         </div>
 
+        {/*
+          Row 4 (1fr) — Slides container.
+          position:relative so absolute children fill this exact area.
+          height:100% resolves correctly because the grid row is 1fr of a 100vh parent.
+        */}
         <div
           id="tv-tuning"
           data-slide-interval={String(chartPayload.slideIntervalSec)}
           style={{ display: "none" }}
           aria-hidden
         />
-
-        {/* JSON trong div (không dùng script type=application/json — một số WebView/TV đọc textContent script không ổn định) */}
         <div
           id="tv-chart-initial"
           style={{ display: "none" }}
@@ -175,139 +183,150 @@ export default async function Home() {
             __html: JSON.stringify(chartPayload).replace(/</g, "\\u003c"),
           }}
         />
-
-        <div className="tv-slides-stack">
-          <div id="slide-table" className="tv-slide-panel tv-slide-panel-active">
-        {/* Price Table */}
-        <table className="price-table" style={{ width: "100%", borderCollapse: "separate", borderSpacing: "0 1vh", flex: 1 }}>
-          <colgroup>
-            <col className="tv-col-name" />
-            <col className="tv-col-buy" />
-            <col className="tv-col-sell" />
-          </colgroup>
-          <thead>
-            <tr>
-              {["Loại Vàng", "Mua Vào", "Bán Ra"].map((h, i) => (
-                <th
-                  key={h}
-                  className="text-th tv-th"
-                  style={{
-                    background: "linear-gradient(135deg, #c9a84c, #f5d27a, #c9a84c)",
-                    color: "#3d0000",
-                    letterSpacing: "0.15em",
-                    fontWeight: 700,
-                    textTransform: "uppercase",
-                    borderRadius: i === 0 ? "8px 0 0 8px" : i === 2 ? "0 8px 8px 0" : undefined,
-                    textAlign: i === 0 ? "left" : "center",
-                  }}
-                >
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {prices.map((row, idx) => (
-              <tr
-                key={idx}
-                className="animate-row-slide"
-                style={{ animationDelay: `${idx * 0.1 + 0.05}s` }}
-              >
-                <td
-                  className="text-name tv-td"
-                  style={{
-                    fontWeight: 700,
-                    color: "#f5d27a",
-                    letterSpacing: "0.1em",
-                    textAlign: "left",
-                    borderLeft: "4px solid #c9a84c",
-                    borderRadius: "8px 0 0 8px",
-                    background: "rgba(201,168,76,0.08)",
-                    borderTop: "1px solid rgba(201,168,76,0.15)",
-                    borderBottom: "1px solid rgba(201,168,76,0.15)",
-                  }}
-                >
-                  {row.name}
-                </td>
-                <td
-                  className={row.buy ? "text-price tv-td" : "text-sub tv-td"}
-                  data-row={idx}
-                  data-field="buy"
-                  style={{
-                    fontWeight: 700,
-                    textAlign: "center",
-                    color: row.buy ? "#fff176" : "rgba(255,255,255,0.3)",
-                    background: "rgba(0,0,0,0.3)",
-                    borderTop: "1px solid rgba(201,168,76,0.15)",
-                    borderBottom: "1px solid rgba(201,168,76,0.15)",
-                  }}
-                >
-                  {row.buy ? `${formatVND(row.buy)}đ` : "—"}
-                </td>
-                <td
-                  className={row.sell ? "text-price tv-td" : "text-sub tv-td"}
-                  data-row={idx}
-                  data-field="sell"
-                  style={{
-                    fontWeight: 700,
-                    textAlign: "center",
-                    color: row.sell ? "#66ff99" : "rgba(255,255,255,0.3)",
-                    background: "rgba(0,0,0,0.3)",
-                    borderRadius: "0 8px 8px 0",
-                    borderRight: "3px solid rgba(201,168,76,0.3)",
-                    borderTop: "1px solid rgba(201,168,76,0.15)",
-                    borderBottom: "1px solid rgba(201,168,76,0.15)",
-                  }}
-                >
-                  {row.sell ? `${formatVND(row.sell)}đ` : "—"}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        {/* Contact info */}
         <div
-          className="text-contact tv-contact-bar"
-          style={{
-            display: "flex",
-            flexDirection: "row",
-            flexWrap: "wrap",
-            alignItems: "center",
-            justifyContent: "center",
-            marginTop: "0.5vh",
-            marginBottom: "0.5vh",
-            color: "#c9a84c",
-            letterSpacing: "0.1em",
-            textTransform: "uppercase",
-            fontWeight: 700,
-            textAlign: "center",
-          }}
+          className="tv-slides-stack"
+          style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden" }}
         >
-          <div>
-            Liên hệ:{" "}
-            <span className="text-contact-val" style={{ color: "#f5d27a", textShadow: "0 0 15px rgba(245,210,122,0.4)", marginLeft: "1vw", letterSpacing: "0.05em", fontWeight: 900 }}>
-              0977975626
-            </span>
-          </div>
-          <div className="tv-contact-sep" style={{ color: "rgba(201,168,76,0.4)" }}>|</div>
-          <div>
-            Địa chỉ:{" "}
-            <span className="text-contact-val" style={{ color: "#f5d27a", textShadow: "0 0 15px rgba(245,210,122,0.4)", marginLeft: "1vw", letterSpacing: "0.05em", fontWeight: 900 }}>
-              xã Hải Lựu, tỉnh Phú Thọ
-            </span>
-          </div>
-        </div>
+          {/* Slide: Price Table */}
+          <div
+            id="slide-table"
+            className="tv-slide-panel tv-slide-panel-active"
+            style={{
+              position: "absolute",
+              top: 0,
+              right: 0,
+              bottom: 0,
+              left: 0,
+              display: "grid",
+              gridTemplateColumns: "1fr",
+              gridTemplateRows: "1fr auto auto",
+              alignItems: "center",
+              justifyItems: "center",
+              overflow: "hidden",
+            }}
+          >
+            {/* Table fills the 1fr row */}
+            <table className="price-table" style={{ width: "100%", borderCollapse: "separate", borderSpacing: "0 1vh", alignSelf: "center" }}>
+              <thead>
+                <tr>
+                  {["Loại Vàng", "Mua Vào", "Bán Ra"].map((h, i) => (
+                    <th
+                      key={h}
+                      className="text-th tv-th"
+                      style={{
+                        background: "linear-gradient(135deg, #c9a84c, #f5d27a, #c9a84c)",
+                        color: "#3d0000",
+                        letterSpacing: "0.15em",
+                        fontWeight: 700,
+                        textTransform: "uppercase",
+                        borderRadius: i === 0 ? "8px 0 0 8px" : i === 2 ? "0 8px 8px 0" : undefined,
+                        textAlign: i === 0 ? "left" : "center",
+                        width: i === 0 ? "30%" : undefined,
+                      }}
+                    >
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {prices.map((row, idx) => (
+                  <tr
+                    key={idx}
+                    className="animate-row-slide"
+                    style={{ animationDelay: `${idx * 0.1 + 0.05}s` }}
+                  >
+                    <td
+                      className="text-name tv-td"
+                      style={{
+                        fontWeight: 700,
+                        color: "#f5d27a",
+                        letterSpacing: "0.1em",
+                        textAlign: "left",
+                        borderLeft: "4px solid #c9a84c",
+                        borderRadius: "8px 0 0 8px",
+                        background: "rgba(201,168,76,0.08)",
+                        borderTop: "1px solid rgba(201,168,76,0.15)",
+                        borderBottom: "1px solid rgba(201,168,76,0.15)",
+                      }}
+                    >
+                      {row.name}
+                    </td>
+                    <td
+                      className={row.buy ? "text-price tv-td" : "text-sub tv-td"}
+                      data-row={idx}
+                      data-field="buy"
+                      style={{
+                        fontWeight: 700,
+                        textAlign: "center",
+                        color: row.buy ? "#fff176" : "rgba(255,255,255,0.3)",
+                        background: "rgba(0,0,0,0.3)",
+                        borderTop: "1px solid rgba(201,168,76,0.15)",
+                        borderBottom: "1px solid rgba(201,168,76,0.15)",
+                      }}
+                    >
+                      {row.buy ? `${formatVND(row.buy)}đ` : "—"}
+                    </td>
+                    <td
+                      className={row.sell ? "text-price tv-td" : "text-sub tv-td"}
+                      data-row={idx}
+                      data-field="sell"
+                      style={{
+                        fontWeight: 700,
+                        textAlign: "center",
+                        color: row.sell ? "#66ff99" : "rgba(255,255,255,0.3)",
+                        background: "rgba(0,0,0,0.3)",
+                        borderRadius: "0 8px 8px 0",
+                        borderRight: "3px solid rgba(201,168,76,0.3)",
+                        borderTop: "1px solid rgba(201,168,76,0.15)",
+                        borderBottom: "1px solid rgba(201,168,76,0.15)",
+                      }}
+                    >
+                      {row.sell ? `${formatVND(row.sell)}đ` : "—"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
 
-        {/* Footer */}
-        <div
-          className="text-footer tv-footer-note"
-          style={{ color: "rgba(201,168,76,0.5)", letterSpacing: "0.2em" }}
-        >
-          <i>Giá có thể thay đổi theo thị trường • Vui lòng liên hệ để biết chi tiết</i>
-        </div>
+            {/* Contact info */}
+            <div
+              className="text-contact"
+              style={{
+                display: "grid",
+                gridTemplateColumns: "auto auto auto",
+                justifyContent: "center",
+                alignItems: "center",
+                width: "100%",
+                marginTop: "0.5vh",
+                color: "#c9a84c",
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                fontWeight: 700,
+              }}
+            >
+              <div>
+                Liên hệ:{" "}
+                <span className="text-contact-val" style={{ color: "#f5d27a", textShadow: "0 0 15px rgba(245,210,122,0.4)", marginLeft: "1vw", letterSpacing: "0.05em", fontWeight: 900 }}>
+                  0977975626
+                </span>
+              </div>
+              <div style={{ marginLeft: "2vw", marginRight: "2vw", color: "rgba(201,168,76,0.4)" }}>|</div>
+              <div>
+                Địa chỉ:{" "}
+                <span className="text-contact-val" style={{ color: "#f5d27a", textShadow: "0 0 15px rgba(245,210,122,0.4)", marginLeft: "1vw", letterSpacing: "0.05em", fontWeight: 900 }}>
+                  xã Hải Lựu, tỉnh Phú Thọ
+                </span>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="text-footer" style={{ color: "rgba(201,168,76,0.5)", letterSpacing: "0.2em", width: "100%", marginBottom: "0.5vh" }}>
+              <i>Giá có thể thay đổi theo thị trường • Vui lòng liên hệ để biết chi tiết</i>
+            </div>
           </div>
 
+          {/* Slide: Chart */}
           <div
             id="slide-chart"
             className="tv-slide-panel tv-slide-panel-inactive tv-slide-chart"
@@ -315,23 +334,13 @@ export default async function Home() {
             {!chartPayload.empty ? (
               <div
                 className="text-sub tv-chart-legend-hint"
-                style={{
-                  fontFamily: "'Playfair Display', serif",
-                  color: "rgba(201, 168, 76, 0.95)",
-                  fontWeight: 600,
-                }}
+                style={{ fontFamily: "'Playfair Display', serif", color: "rgba(201,168,76,0.95)", fontWeight: 600 }}
               >
-                <span style={{ color: "#66ff99" }} aria-hidden>
-                  ●
-                </span>{" "}
+                <span style={{ color: "#66ff99" }} aria-hidden>●</span>{" "}
                 Tăng so với ngày trước &nbsp;·&nbsp;{" "}
-                <span style={{ color: "#ff8a80" }} aria-hidden>
-                  ●
-                </span>{" "}
+                <span style={{ color: "#ff8a80" }} aria-hidden>●</span>{" "}
                 Giảm &nbsp;·&nbsp;{" "}
-                <span style={{ color: "#fff176" }} aria-hidden>
-                  ●
-                </span>{" "}
+                <span style={{ color: "#fff176" }} aria-hidden>●</span>{" "}
                 Không đổi / ngày đầu dãy
               </div>
             ) : null}
@@ -348,14 +357,10 @@ export default async function Home() {
             </div>
           </div>
         </div>
-        </div>
       </div>
 
-      {/* Inline diagnostic — xác nhận JS chạy được trên WebView, independent of React hydration */}
       <script dangerouslySetInnerHTML={{ __html: "try{window.__tvJsOk=1}catch(e){}" }} />
-      {/* Chart.js 3.9.1 UMD — tương thích Chrome 66+; defer đảm bảo load trước script chính */}
       <script defer src="/scripts/chart.min.js" />
-      {/* Plain <script defer> — không phụ thuộc Next.js client runtime, chạy được trên WebView 66 */}
       <script defer src="/scripts/bang-gia-vang-tv.js" />
     </div>
   );
