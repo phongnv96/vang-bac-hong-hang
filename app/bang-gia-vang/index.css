@@ -20,6 +20,50 @@
   padding: 4vh 4vw;
 }
 
+/* Khối giữa: căn cột nội dung (bảng + chân) trên TV rộng — WebView-safe, không dùng gap */
+.tv-center-stack {
+  width: 100%;
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.tv-header-bar {
+  box-sizing: border-box;
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
+}
+
+.tv-divider-row {
+  box-sizing: border-box;
+}
+
+.tv-col-name {
+  width: 36%;
+}
+
+.tv-col-buy,
+.tv-col-sell {
+  width: 32%;
+}
+
+.tv-contact-bar > div + div {
+  margin-left: 1.25vw;
+}
+
+.tv-footer-note {
+  width: 100%;
+  max-width: 56rem;
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
+  line-height: 1.45;
+}
+
 @media (max-width: 1024px) {
   .tv-content {
     padding: 24px 48px;
@@ -34,6 +78,7 @@
 
 /* Table spacing */
 .price-table {
+  table-layout: fixed;
   border-collapse: separate;
   border-spacing: 0 1vh;
 }
@@ -103,6 +148,7 @@
 
 .tv-th {
   padding: 1.2vh 2vw;
+  vertical-align: middle;
 }
 
 @media (max-width: 1024px) {
@@ -187,7 +233,8 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  /* stretch: bảng width:100% không bị co theo nội dung (một số WebView + align-items:center) */
+  align-items: stretch;
   justify-content: flex-start;
   transition: opacity 0.7s ease;
   overflow-x: hidden;
@@ -264,10 +311,12 @@
 }
 
 .tv-td {
-  padding: 0 2vw;
+  padding: 0.6vh 1.5vw;
   height: 11vh;
-  line-height: 1;
+  line-height: 1.2;
   white-space: nowrap;
+  vertical-align: middle;
+  box-sizing: border-box;
 }
 
 @media (max-width: 1024px) {

@@ -100,15 +100,16 @@ export default async function Home() {
           Vàng Bạc Hồng Hằng
         </div>
 
+        <div className="tv-center-stack">
         {/* Header row: subtitle LEFT + clock RIGHT */}
         <div
+          className="tv-header-bar"
           style={{
             display: "flex",
             flexDirection: "row",
             alignItems: "center",
             justifyContent: "space-between",
             width: "100%",
-            padding: "0 0.5vw",
             marginTop: "1vh",
           }}
         >
@@ -143,12 +144,13 @@ export default async function Home() {
           </div>
         </div>
 
-        {/* Divider */}
+        {/* Divider — cùng bề ngang bảng (trước đây 90% lệch so với bảng 100%) */}
         <div
+          className="tv-divider-row"
           style={{
             display: "flex",
             alignItems: "center",
-            width: "90%",
+            width: "100%",
             marginTop: "1vh",
             marginBottom: "1vh",
           }}
@@ -180,6 +182,11 @@ export default async function Home() {
           <div id="slide-table" className="tv-slide-panel tv-slide-panel-active">
         {/* Price Table */}
         <table className="price-table" style={{ width: "100%", borderCollapse: "separate", borderSpacing: "0 1vh" }}>
+          <colgroup>
+            <col className="tv-col-name" />
+            <col className="tv-col-buy" />
+            <col className="tv-col-sell" />
+          </colgroup>
           <thead>
             <tr>
               {["Loại Vàng", "Mua Vào", "Bán Ra"].map((h, i) => (
@@ -194,7 +201,6 @@ export default async function Home() {
                     textTransform: "uppercase",
                     borderRadius: i === 0 ? "8px 0 0 8px" : i === 2 ? "0 8px 8px 0" : undefined,
                     textAlign: i === 0 ? "left" : "center",
-                    width: i === 0 ? "30%" : undefined,
                   }}
                 >
                   {h}
@@ -264,10 +270,11 @@ export default async function Home() {
 
         {/* Contact info */}
         <div
-          className="text-contact"
+          className="text-contact tv-contact-bar"
           style={{
             display: "flex",
             flexDirection: "row",
+            flexWrap: "wrap",
             alignItems: "center",
             justifyContent: "center",
             marginTop: "0.5vh",
@@ -276,6 +283,7 @@ export default async function Home() {
             letterSpacing: "0.1em",
             textTransform: "uppercase",
             fontWeight: 700,
+            textAlign: "center",
           }}
         >
           <div>
@@ -284,7 +292,7 @@ export default async function Home() {
               0977975626
             </span>
           </div>
-          <div style={{ marginLeft: "2vw", marginRight: "2vw", color: "rgba(201,168,76,0.4)" }}>|</div>
+          <div className="tv-contact-sep" style={{ color: "rgba(201,168,76,0.4)" }}>|</div>
           <div>
             Địa chỉ:{" "}
             <span className="text-contact-val" style={{ color: "#f5d27a", textShadow: "0 0 15px rgba(245,210,122,0.4)", marginLeft: "1vw", letterSpacing: "0.05em", fontWeight: 900 }}>
@@ -294,7 +302,10 @@ export default async function Home() {
         </div>
 
         {/* Footer */}
-        <div className="text-footer" style={{ color: "rgba(201,168,76,0.5)", letterSpacing: "0.2em" }}>
+        <div
+          className="text-footer tv-footer-note"
+          style={{ color: "rgba(201,168,76,0.5)", letterSpacing: "0.2em" }}
+        >
           <i>Giá có thể thay đổi theo thị trường • Vui lòng liên hệ để biết chi tiết</i>
         </div>
           </div>
@@ -338,6 +349,7 @@ export default async function Home() {
               )}
             </div>
           </div>
+        </div>
         </div>
       </div>
 
