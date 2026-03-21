@@ -1,13 +1,12 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Diamond, ShieldCheck, Gem } from "lucide-react";
 import Image from "next/image";
 import { HomePagePriceBoard } from "@/features/price-board/components";
 import { ReviewSection } from "@/features/products/components/review-section";
 
-export default function Home() {
+export function HomePage() {
   return (
     <div className="flex flex-col w-full bg-background min-h-screen">
       {/* ──────────────────────────────────────────────
@@ -16,7 +15,6 @@ export default function Home() {
       <section className="relative w-full h-[85vh] min-h-[600px] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-linear-to-b from-background/40 via-background/60 to-background z-10" />
-          {/* We use a placeholder image for now, later user can replace with actual high-res photography */}
           <div className="w-full h-full bg-[url('https://images.unsplash.com/photo-1611591437281-460bfbe1220a?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center" />
         </div>
 
@@ -67,14 +65,13 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Category 1 */}
             <Link href="/san-pham?category=nhan" className="group">
               <div className="relative aspect-3/4 overflow-hidden bg-secondary">
                 <div className="absolute inset-0 bg-linear-to-t from-background via-background/20 to-transparent z-10 opacity-80" />
-                <Image 
-                  src="https://images.unsplash.com/photo-1601121141461-9d6647bca1ed?q=80&w=2000&auto=format&fit=crop" 
-                  alt="Nhẫn trang sức" 
-                  fill 
+                <Image
+                  src="https://images.unsplash.com/photo-1601121141461-9d6647bca1ed?q=80&w=2000&auto=format&fit=crop"
+                  alt="Nhẫn trang sức"
+                  fill
                   className="object-cover transition-transform duration-700 group-hover:scale-105"
                 />
                 <div className="absolute bottom-0 left-0 w-full p-8 z-20">
@@ -84,14 +81,13 @@ export default function Home() {
               </div>
             </Link>
 
-            {/* Category 2 */}
             <Link href="/san-pham?category=day-chuyen" className="group md:-mt-8">
               <div className="relative aspect-3/4 overflow-hidden bg-secondary">
                 <div className="absolute inset-0 bg-linear-to-t from-background via-background/20 to-transparent z-10 opacity-80" />
-                <Image 
-                  src="https://images.unsplash.com/photo-1543294001-f7cd5d7fb516?q=80&w=1974&auto=format&fit=crop" 
-                  alt="Dây chuyền" 
-                  fill 
+                <Image
+                  src="https://images.unsplash.com/photo-1543294001-f7cd5d7fb516?q=80&w=1974&auto=format&fit=crop"
+                  alt="Dây chuyền"
+                  fill
                   className="object-cover transition-transform duration-700 group-hover:scale-105"
                 />
                 <div className="absolute bottom-0 left-0 w-full p-8 z-20">
@@ -101,14 +97,13 @@ export default function Home() {
               </div>
             </Link>
 
-            {/* Category 3 */}
             <Link href="/san-pham?category=trang-suc-cuoi" className="group">
               <div className="relative aspect-3/4 overflow-hidden bg-secondary">
                 <div className="absolute inset-0 bg-linear-to-t from-background via-background/20 to-transparent z-10 opacity-80" />
-                <Image 
-                  src="https://images.unsplash.com/photo-1622290319146-7b63df48a635?q=80&w=1974&auto=format&fit=crop" 
-                  alt="Trang sức cưới" 
-                  fill 
+                <Image
+                  src="https://images.unsplash.com/photo-1622290319146-7b63df48a635?q=80&w=1974&auto=format&fit=crop"
+                  alt="Trang sức cưới"
+                  fill
                   className="object-cover transition-transform duration-700 group-hover:scale-105"
                 />
                 <div className="absolute bottom-0 left-0 w-full p-8 z-20">
@@ -139,7 +134,7 @@ export default function Home() {
               <h3 className="text-xl font-serif text-foreground font-semibold mb-3">Chế Tác Tinh Xảo</h3>
               <p className="text-muted-foreground text-sm font-light leading-relaxed">Sản phẩm được gia công bởi những nghệ nhân kim hoàn giàu kinh nghiệm, mang đến vẻ đẹp hoàn mỹ từng chi tiết.</p>
             </div>
-            
+
             <div className="text-center group">
               <div className="w-16 h-16 mx-auto mb-6 flex items-center justify-center rounded-full bg-primary/10 text-primary border border-primary/20 group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300">
                 <ShieldCheck className="w-8 h-8" />
@@ -165,7 +160,6 @@ export default function Home() {
       <section className="py-12 bg-background mb-16 container mx-auto px-4">
         <ReviewSection />
       </section>
-
     </div>
   );
 }

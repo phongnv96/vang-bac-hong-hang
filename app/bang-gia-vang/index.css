@@ -1,0 +1,191 @@
+/* ===================================================================
+   Bảng giá — TV display (plain CSS, WebView-safe; no Tailwind)
+   =================================================================== */
+
+/* TV display: hide cursor + no scroll on large screens */
+.tv-display {
+  cursor: none;
+  overflow: hidden;
+}
+
+@media (max-width: 1024px) {
+  .tv-display {
+    cursor: auto;
+    overflow: auto;
+  }
+}
+
+/* TV content padding */
+.tv-content {
+  padding: 4vh 4vw;
+}
+
+@media (max-width: 1024px) {
+  .tv-content {
+    padding: 24px 48px;
+  }
+}
+
+@media (max-width: 640px) {
+  .tv-content {
+    padding: 24px 32px;
+  }
+}
+
+/* Table spacing */
+.price-table {
+  border-collapse: separate;
+  border-spacing: 0 1vh;
+}
+
+@media (max-width: 1024px) {
+  .price-table {
+    border-spacing: 0 6px;
+  }
+}
+
+@media (max-width: 640px) {
+  .price-table {
+    border-spacing: 0 4px;
+  }
+}
+
+.frame-outer {
+  inset: 1.5vh;
+  border: 3px solid var(--gold);
+}
+
+.frame-inner {
+  inset: 2.5vh;
+  border: 1px solid rgba(201, 168, 76, 0.4);
+}
+
+.subtitle {
+  font-family: var(--font-playfair), serif;
+  color: #ffe599;
+  letter-spacing: 0.15em;
+  text-shadow: 0 0 10px rgba(255, 229, 153, 0.6);
+  white-space: nowrap;
+}
+
+.clock {
+  letter-spacing: 0.15em;
+  text-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+  white-space: nowrap;
+}
+
+.footer {
+  color: rgba(201, 168, 76, 0.5);
+  letter-spacing: 0.2em;
+}
+
+/* Table header */
+.th {
+  background: linear-gradient(135deg, var(--gold), var(--gold-light), var(--gold));
+  color: var(--red-dark);
+  letter-spacing: 0.15em;
+}
+
+.th-first {
+  border-radius: 8px 0 0 8px;
+  text-align: left;
+  width: 30%;
+}
+
+.th-middle {
+  text-align: center;
+}
+
+.th-last {
+  border-radius: 0 8px 8px 0;
+  text-align: center;
+}
+
+.tv-th {
+  padding: 1.2vh 2vw;
+}
+
+@media (max-width: 1024px) {
+  .tv-th {
+    padding: 12px 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  .tv-th {
+    padding: 8px 12px;
+  }
+}
+
+/* Table body cells */
+.name-cell {
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-align: left;
+  border-left: 4px solid var(--gold);
+  border-radius: 8px 0 0 8px;
+  background: rgba(201, 168, 76, 0.08);
+  border-top: 1px solid rgba(201, 168, 76, 0.15);
+  border-bottom: 1px solid rgba(201, 168, 76, 0.15);
+}
+
+.price-cell {
+  text-align: center;
+  background: rgba(0, 0, 0, 0.3);
+  border-top: 1px solid rgba(201, 168, 76, 0.15);
+  border-bottom: 1px solid rgba(201, 168, 76, 0.15);
+}
+
+.price-cell-last {
+  text-align: center;
+  background: rgba(0, 0, 0, 0.3);
+  border-top: 1px solid rgba(201, 168, 76, 0.15);
+  border-bottom: 1px solid rgba(201, 168, 76, 0.15);
+  border-radius: 0 8px 8px 0;
+  border-right: 3px solid rgba(201, 168, 76, 0.3);
+}
+
+.input-price {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(201, 168, 76, 0.15);
+  font-weight: 700;
+  outline: none;
+  border-radius: 8px;
+  padding: 1vh 1.5vw;
+}
+
+@media (max-width: 1024px) {
+  .input-price {
+    padding: 8px 12px;
+  }
+}
+
+@media (max-width: 640px) {
+  .input-price {
+    padding: 4px 6px;
+  }
+}
+
+.input-price:focus {
+  box-shadow: 0 0 0 2px var(--gold);
+}
+
+.tv-td {
+  padding: 0 2vw;
+  height: 11vh;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+@media (max-width: 1024px) {
+  .tv-td {
+    height: 54px;
+  }
+}
+
+@media (max-width: 640px) {
+  .tv-td {
+    padding: 0 8px;
+    height: 40px;
+  }
+}
