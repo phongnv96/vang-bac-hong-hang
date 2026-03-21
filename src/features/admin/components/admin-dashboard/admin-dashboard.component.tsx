@@ -62,7 +62,7 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
         setSaved(true);
         setTimeout(() => {
           setSaved(false);
-          router.push("/");
+          router.push("/bang-gia-vang");
         }, 800);
       } else {
         alert("Lỗi: " + (data.error || "Không thể lưu"));
@@ -98,7 +98,7 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
               className={`flex-1 md:flex-none th-gradient font-black uppercase tracking-wider cursor-pointer rounded-lg transition-all hover:brightness-110 disabled:opacity-50 text-btn ${styles.saveBtn}`}>
               {loading ? "⏳ Đang lưu..." : "💾 Lưu Bảng Giá"}
             </button>
-            <a href="/" target="_blank"
+            <a href="/bang-gia-vang" target="_blank"
                className={`flex-1 md:flex-none text-center rounded-lg font-bold uppercase tracking-wider transition-all hover:brightness-110 text-footer ${styles.viewLink}`}>
               Xem Bảng Giá ↗
             </a>
