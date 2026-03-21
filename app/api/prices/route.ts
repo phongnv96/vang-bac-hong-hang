@@ -1,13 +1,10 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { DEFAULT_PRICES } from "@/configs/prices";
+import { getCalendarDateString } from "@/lib/prices-date";
 
 function getTodayDate(): string {
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = String(now.getMonth() + 1).padStart(2, "0");
-  const d = String(now.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
+  return getCalendarDateString();
 }
 
 // GET — lấy giá ngày hôm nay
@@ -56,6 +53,15 @@ export async function POST(request: Request) {
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    const { error: snapErr } = await supabase.from("gold_price_snapshots").insert({
+      prices,
+      recorded_at: new Date().toISOString(),
+    });
+
+    if (snapErr) {
+      console.error("[POST /api/prices] snapshot insert:", snapErr);
     }
 
     return NextResponse.json({ success: true, date: today });

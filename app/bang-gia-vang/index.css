@@ -170,6 +170,90 @@
   box-shadow: 0 0 0 2px var(--gold);
 }
 
+/* Slide stack: bảng giá ↔ biểu đồ */
+.tv-slides-stack {
+  position: relative;
+  width: 100%;
+  flex: 1;
+  min-height: 48vh;
+}
+
+.tv-slide-panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  transition: opacity 0.7s ease;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.tv-slide-panel-active {
+  opacity: 1;
+  z-index: 2;
+  pointer-events: auto;
+}
+
+.tv-slide-panel-inactive {
+  opacity: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Tiêu đề slide biểu đồ — cùng scale với header cột bảng giá */
+.tv-chart-heading {
+  width: 100%;
+  text-align: center;
+}
+
+/* Slide biểu đồ: chart full ngang như bảng, chiếm phần còn lại dọc */
+.tv-slide-chart {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.tv-slide-chart .tv-chart-heading {
+  flex-shrink: 0;
+}
+
+.tv-chart-legend-hint {
+  flex-shrink: 0;
+  width: 100%;
+  text-align: center;
+  line-height: 1.35;
+  letter-spacing: 0.06em;
+  margin-top: 0.35vh;
+  padding: 0 1vw;
+}
+
+.tv-chart-wrap {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  max-width: none;
+  margin: 0.8vh 0 0;
+}
+
+.tv-chart-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #c9a84c;
+  font-size: clamp(14px, 2.2vh, 22px);
+  letter-spacing: 0.08em;
+  text-align: center;
+  padding: 2vh;
+}
+
 .tv-td {
   padding: 0 2vw;
   height: 11vh;

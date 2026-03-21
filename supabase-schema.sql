@@ -13,6 +13,32 @@ CREATE TABLE gold_prices (
 CREATE INDEX idx_gold_prices_date ON gold_prices (date);
 
 -- =============================================
+-- Lịch sử mỗi lần lưu giá (append) — biểu đồ TV
+-- =============================================
+CREATE TABLE gold_price_snapshots (
+  id           UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  recorded_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  prices       JSONB NOT NULL DEFAULT '[]'::jsonb
+);
+
+CREATE INDEX idx_gold_price_snapshots_recorded_at ON gold_price_snapshots (recorded_at DESC);
+
+-- =============================================
+-- Cấu hình hiển thị TV (biểu đồ + luân phiên slide)
+-- =============================================
+CREATE TABLE tv_display_settings (
+  id                  TEXT PRIMARY KEY DEFAULT 'default',
+  chart_days          INTEGER NOT NULL DEFAULT 14,
+  chart_row_index     INTEGER NOT NULL DEFAULT 0,
+  chart_field         TEXT NOT NULL DEFAULT 'sell',
+  slide_interval_sec  INTEGER NOT NULL DEFAULT 300,
+  updated_at          TIMESTAMPTZ DEFAULT now()
+);
+
+INSERT INTO tv_display_settings (id) VALUES ('default')
+ON CONFLICT (id) DO NOTHING;
+
+-- =============================================
 -- Bảng admin đăng nhập
 -- =============================================
 CREATE TABLE admins (
@@ -30,6 +56,12 @@ VALUES ('phongnv', 'honghang@2026');
 -- =============================================
 ALTER TABLE gold_prices ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow all" ON gold_prices FOR ALL USING (true) WITH CHECK (true);
+
+ALTER TABLE gold_price_snapshots ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all" ON gold_price_snapshots FOR ALL USING (true) WITH CHECK (true);
+
+ALTER TABLE tv_display_settings ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all" ON tv_display_settings FOR ALL USING (true) WITH CHECK (true);
 
 ALTER TABLE admins ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow all" ON admins FOR ALL USING (true) WITH CHECK (true);
