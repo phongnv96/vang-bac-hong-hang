@@ -889,7 +889,7 @@
     }
   }
 
-  var showTable = false;
+  var showTable = true;
   function applySlides() {
     var t = document.getElementById("slide-table");
     var c = document.getElementById("slide-chart");
