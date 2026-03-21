@@ -354,6 +354,8 @@ export default async function Home() {
 
       {/* Inline diagnostic — xác nhận JS chạy được trên WebView, independent of React hydration */}
       <script dangerouslySetInnerHTML={{ __html: "try{window.__tvJsOk=1}catch(e){}" }} />
+      {/* Chart.js 3.9.1 UMD — tương thích Chrome 66+; defer đảm bảo load trước script chính */}
+      <script defer src="/scripts/chart.min.js" />
       {/* Plain <script defer> — không phụ thuộc Next.js client runtime, chạy được trên WebView 66 */}
       <script defer src="/scripts/bang-gia-vang-tv.js" />
     </div>

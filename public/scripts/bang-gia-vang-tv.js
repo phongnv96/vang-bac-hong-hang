@@ -21,12 +21,13 @@
     lineFlat: "rgba(245, 210, 122, 0.95)",
   };
 
-  /** Trạng thái chart canvas (không dùng Chart.js) */
+  /** Trạng thái chart (Chart.js nếu có, fallback vanilla canvas) */
   var tvChartState = {
     canvas: null,
     payload: null,
     onResize: null,
     bumpTimer: null,
+    chartInstance: null,
   };
 
   /** Cùng một lỗi chỉ hiện dialog một lần (tránh spam mỗi 30s khi poll) */
@@ -246,10 +247,10 @@
 
   function getTvFontSizes() {
     var footer = readCssFontSizePx("text-footer", 12);
-    var pointLabel = Math.max(28, Math.min(72, footer * 3.2));
+    var pointLabel = Math.max(56, Math.min(120, footer * 5.2));
     return {
-      legend: readCssFontSizePx("text-sub", 22),
-      axis: readCssFontSizePx("text-th", 28),
+      legend: Math.max(36, readCssFontSizePx("text-sub", 36)),
+      axis: Math.max(46, readCssFontSizePx("text-th", 46)),
       pointLabel: pointLabel,
     };
   }
@@ -261,6 +262,119 @@
       title: payload.title || "",
       empty: !!payload.empty,
     };
+  }
+
+  /**
+   * Tạo biểu đồ bằng Chart.js 3.x (nếu global `Chart` tồn tại).
+   * Trả về Chart instance hoặc null.
+   */
+  function createChartJsChart(canvas, payload) {
+    if (typeof Chart === "undefined") return null;
+    var values = payload.values || [];
+    var labels = payload.labels || [];
+    if (!values.length) return null;
+
+    var styles = pointStylesForValues(values);
+    var numFont = getNumericFontFamily();
+
+    var datalabelPlugin = {
+      id: "tvDatalabels",
+      afterDatasetsDraw: function (chartObj) {
+        var ctx = chartObj.ctx;
+        var meta = chartObj.getDatasetMeta(0);
+        if (!meta || !meta.data) return;
+        var data = chartObj.data.datasets[0].data;
+        var area = chartObj.chartArea;
+        if (!area) return;
+        var areaH = area.bottom - area.top;
+        var midY = area.top + areaH * 0.5;
+        var fontSize = Math.max(38, Math.round(areaH * 0.12));
+        ctx.save();
+        ctx.font = "600 " + fontSize + "px " + numFont;
+        ctx.textAlign = "center";
+        for (var i = 0; i < meta.data.length; i++) {
+          var pt = meta.data[i];
+          var val = Number(data[i]);
+          if (!isFinite(val)) continue;
+          ctx.fillStyle = styles.backgrounds[i] || "#f5d27a";
+          var above = pt.y > midY;
+          ctx.textBaseline = above ? "bottom" : "top";
+          ctx.fillText(formatVndTr(val), pt.x, pt.y + (above ? -18 : 18));
+        }
+        ctx.restore();
+      },
+    };
+
+    try {
+      var instance = new Chart(canvas, {
+        type: "line",
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              data: values,
+              borderColor: "#f5d27a",
+              backgroundColor: "rgba(245, 210, 122, 0.14)",
+              fill: true,
+              tension: 0.15,
+              pointRadius: 14,
+              pointHoverRadius: 16,
+              pointBackgroundColor: styles.backgrounds,
+              pointBorderColor: styles.borders,
+              pointBorderWidth: 2,
+              borderWidth: 2.5,
+              segment: {
+                borderColor: function (ctx) {
+                  return segmentLineColor(ctx.p0.parsed.y, ctx.p1.parsed.y);
+                },
+              },
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: false,
+          layout: { padding: { top: 20, bottom: 8, left: 8, right: 8 } },
+          scales: {
+            x: {
+              ticks: {
+                color: "#c9a84c",
+                font: { size: 28, weight: "600", family: numFont },
+                maxRotation: 0,
+                autoSkip: true,
+                maxTicksLimit: 8,
+              },
+              grid: { color: "rgba(201, 168, 76, 0.1)" },
+            },
+            y: {
+              ticks: { display: false },
+              grid: { color: "rgba(201, 168, 76, 0.12)" },
+            },
+          },
+          plugins: {
+            title: {
+              display: true,
+              text: payload.title || "",
+              color: "#f5d27a",
+              font: {
+                size: 36,
+                weight: "bold",
+                family: "'Playfair Display', Georgia, serif",
+              },
+              padding: { top: 0, bottom: 14 },
+            },
+            legend: { display: false },
+            tooltip: { enabled: false },
+          },
+        },
+        plugins: [datalabelPlugin],
+      });
+      return instance;
+    } catch (e) {
+      reportTvError("Chart.js — khởi tạo", tvErrString(e));
+      return null;
+    }
   }
 
   function measureCanvasCssSize(canvas, payload) {
@@ -515,6 +629,10 @@
         delete window.__tvChartRedraw;
       } catch (eDel) {}
     }
+    if (tvChartState.chartInstance) {
+      try { tvChartState.chartInstance.destroy(); } catch (eD) {}
+      tvChartState.chartInstance = null;
+    }
     if (tvChartState.onResize && window.removeEventListener) {
       window.removeEventListener("resize", tvChartState.onResize, false);
     }
@@ -529,14 +647,71 @@
 
   function mountTvGoldChart(canvas, payload) {
     destroyTvGoldChart();
+    tvChartState.canvas = canvas;
+    tvChartState.payload = clonePayload(payload);
+
+    /* --- Chart.js path (preferred) --- */
+    var inst = createChartJsChart(canvas, tvChartState.payload);
+    if (inst) {
+      tvChartState.chartInstance = inst;
+
+      function onResizeCJ() {
+        if (tvChartState.bumpTimer) clearTimeout(tvChartState.bumpTimer);
+        tvChartState.bumpTimer = setTimeout(function () {
+          tvChartState.bumpTimer = null;
+          if (tvChartState.chartInstance) {
+            try { tvChartState.chartInstance.resize(); } catch (e) {}
+          }
+        }, 120);
+      }
+      tvChartState.onResize = onResizeCJ;
+      if (window.addEventListener) {
+        window.addEventListener("resize", onResizeCJ, false);
+      }
+
+      window.__tvChartRefresh = function () {
+        return fetch("/api/prices/history")
+          .then(function (res) {
+            if (!res.ok) {
+              reportTvError("Làm mới chart — HTTP", "/api/prices/history → " + res.status);
+              return null;
+            }
+            return res.json();
+          })
+          .then(function (json) {
+            if (!json || !json.chart || json.chart.empty) return;
+            tvChartState.payload = clonePayload(json.chart);
+            if (tvChartState.chartInstance) {
+              var ci = tvChartState.chartInstance;
+              var newStyles = pointStylesForValues(json.chart.values);
+              ci.data.labels = json.chart.labels;
+              ci.data.datasets[0].data = json.chart.values;
+              ci.data.datasets[0].pointBackgroundColor = newStyles.backgrounds;
+              ci.data.datasets[0].pointBorderColor = newStyles.borders;
+              try { ci.update(); } catch (eU) {
+                reportTvError("Chart.js update", tvErrString(eU));
+              }
+            }
+          })
+          .catch(function (err) {
+            reportTvError("Làm mới chart — mạng", err && err.message ? err.message : "fetch thất bại");
+          });
+      };
+
+      window.__tvChartRedraw = function () {
+        if (tvChartState.chartInstance) {
+          try { tvChartState.chartInstance.resize(); } catch (e) {}
+        }
+      };
+      return;
+    }
+
+    /* --- Vanilla canvas fallback --- */
     var ctx = canvas.getContext("2d");
     if (!ctx) {
       reportTvError("Canvas 2D", "getContext('2d') trả về null — WebView có thể tắt canvas hoặc hết bộ nhớ.");
       return;
     }
-
-    tvChartState.canvas = canvas;
-    tvChartState.payload = clonePayload(payload);
 
     function bumpLayout() {
       var wrap = canvas.parentElement;
@@ -551,25 +726,21 @@
         try {
           drawTvGoldCanvas(tvChartState.canvas, tvChartState.payload);
         } catch (eDraw) {
-          reportTvError(
-            "Biểu đồ — vẽ canvas",
-            eDraw && eDraw.message ? eDraw.message : String(eDraw)
-          );
+          reportTvError("Biểu đồ — vẽ canvas", eDraw && eDraw.message ? eDraw.message : String(eDraw));
         }
       }
     }
 
-    function onResize() {
+    function onResizeVC() {
       if (tvChartState.bumpTimer) clearTimeout(tvChartState.bumpTimer);
       tvChartState.bumpTimer = setTimeout(function () {
         tvChartState.bumpTimer = null;
         bumpLayout();
       }, 100);
     }
-
-    tvChartState.onResize = onResize;
+    tvChartState.onResize = onResizeVC;
     if (window.addEventListener) {
-      window.addEventListener("resize", onResize, false);
+      window.addEventListener("resize", onResizeVC, false);
     }
 
     bumpLayout();
@@ -581,10 +752,7 @@
       return fetch("/api/prices/history")
         .then(function (res) {
           if (!res.ok) {
-            reportTvError(
-              "Làm mới chart — HTTP",
-              "/api/prices/history → " + res.status + " " + (res.statusText || "")
-            );
+            reportTvError("Làm mới chart — HTTP", "/api/prices/history → " + res.status);
             return null;
           }
           return res.json();
@@ -596,17 +764,11 @@
           try {
             drawTvGoldCanvas(tvChartState.canvas, tvChartState.payload);
           } catch (eDraw2) {
-            reportTvError(
-              "Làm mới chart — vẽ",
-              eDraw2 && eDraw2.message ? eDraw2.message : String(eDraw2)
-            );
+            reportTvError("Làm mới chart — vẽ", eDraw2 && eDraw2.message ? eDraw2.message : String(eDraw2));
           }
         })
         .catch(function (err) {
-          reportTvError(
-            "Làm mới chart — mạng",
-            err && err.message ? err.message : "fetch thất bại"
-          );
+          reportTvError("Làm mới chart — mạng", err && err.message ? err.message : "fetch thất bại");
         });
     };
 
@@ -726,11 +888,16 @@
     }
   }
   applySlides();
-  if (typeof window.__tvChartRedraw === "function") {
-    try {
-      window.__tvChartRedraw();
-    } catch (eSlide) {}
-  }
+
+  setInterval(function () {
+    showTable = !showTable;
+    applySlides();
+    if (!showTable && typeof window.__tvChartRedraw === "function") {
+      setTimeout(function () {
+        try { window.__tvChartRedraw(); } catch (e) {}
+      }, 120);
+    }
+  }, slideSec * 1000);
 
   function pad2(n) {
     var s = String(n);
