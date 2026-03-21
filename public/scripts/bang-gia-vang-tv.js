@@ -190,6 +190,20 @@
     var numFont = getNumericFontFamily();
     var pointStyles = pointStylesForValues(payload.values);
 
+    function bumpChartLayout() {
+      if (!chartInstance || !chartInstance.resize) return;
+      var c = chartInstance.canvas;
+      var wrap = c && c.parentElement;
+      if (wrap) {
+        var h = window.innerHeight || (document.documentElement && document.documentElement.clientHeight) || 600;
+        var minPx = Math.max(280, Math.round(h * 0.34));
+        if (wrap.offsetHeight < 120 || wrap.clientHeight < 120) {
+          wrap.style.minHeight = minPx + "px";
+        }
+      }
+      chartInstance.resize();
+    }
+
     chartInstance = new Chart(ctx, {
       type: "line",
       data: {
@@ -284,12 +298,20 @@
     };
 
     window.__tvChartRefresh = refresh;
+
+    bumpChartLayout();
+    setTimeout(bumpChartLayout, 50);
+    setTimeout(bumpChartLayout, 300);
+    setTimeout(bumpChartLayout, 1000);
   }
 
   function parseInitialChartPayload() {
     var el = document.getElementById("tv-chart-initial");
     if (!el) return null;
-    var raw = (el.textContent || "").trim();
+    var raw = (el.textContent || el.innerText || "").trim();
+    if (!raw && el.innerHTML) {
+      raw = String(el.innerHTML).trim();
+    }
     if (!raw) return null;
     try {
       return JSON.parse(raw);
@@ -319,7 +341,8 @@
     }
     var s = document.createElement("script");
     s.id = "tv-chart-js";
-    s.async = true;
+    /* false: WebView cũ thường chạy theo thứ tự thêm vào, tránh init chart trước khi Chart global có */
+    s.async = false;
     s.src = "/scripts/chart-3.9.1.min.js";
     s.onload = function () {
       s.setAttribute("data-loaded", "1");
@@ -332,17 +355,46 @@
   }
 
   function initTvChartIfNeeded() {
-    var payload = parseInitialChartPayload();
-    if (!payload || payload.empty) return;
     var canvas = document.getElementById("tv-gold-price-chart");
     if (!canvas) return;
 
-    ensureChartJs(function () {
-      if (typeof Chart === "undefined") return;
-      try {
-        mountTvGoldChart(canvas, payload);
-      } catch (e) {}
-    });
+    function tryMount(payload) {
+      if (!payload || payload.empty) return;
+      ensureChartJs(function () {
+        if (typeof Chart === "undefined") {
+          window.__tvChartDiag = "chart.js not loaded";
+          return;
+        }
+        try {
+          mountTvGoldChart(canvas, payload);
+          window.__tvChartDiag = "ok";
+        } catch (e) {
+          window.__tvChartDiag = e && e.message ? e.message : String(e);
+        }
+      });
+    }
+
+    var payload = parseInitialChartPayload();
+    if (payload && !payload.empty) {
+      tryMount(payload);
+      return;
+    }
+
+    fetch("/api/prices/history", { cache: "no-store" })
+      .then(function (res) {
+        if (!res.ok) return null;
+        return res.json();
+      })
+      .then(function (json) {
+        if (json && json.chart && !json.chart.empty) {
+          tryMount(json.chart);
+        } else if (!window.__tvChartDiag) {
+          window.__tvChartDiag = payload ? "empty series" : "no embedded payload";
+        }
+      })
+      .catch(function () {
+        if (!window.__tvChartDiag) window.__tvChartDiag = "history fetch failed";
+      });
   }
 
   var slideSec = 300;
@@ -380,13 +432,18 @@
   //   applySlides();
   // }, slideSec * 1000);
 
+  function pad2(n) {
+    var s = String(n);
+    return s.length < 2 ? "0" + s : s;
+  }
+
   function tick() {
     var now = new Date();
-    var d = String(now.getDate()).padStart(2, "0");
-    var mo = String(now.getMonth() + 1).padStart(2, "0");
-    var h = String(now.getHours()).padStart(2, "0");
-    var m = String(now.getMinutes()).padStart(2, "0");
-    var s = String(now.getSeconds()).padStart(2, "0");
+    var d = pad2(now.getDate());
+    var mo = pad2(now.getMonth() + 1);
+    var h = pad2(now.getHours());
+    var m = pad2(now.getMinutes());
+    var s = pad2(now.getSeconds());
     var el = document.getElementById("clock");
     if (el) el.textContent = d + "/" + mo + "/" + now.getFullYear() + "  |  " + h + ":" + m + ":" + s;
   }

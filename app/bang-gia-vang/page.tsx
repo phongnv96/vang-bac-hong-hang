@@ -165,10 +165,12 @@ export default async function Home() {
           aria-hidden
         />
 
-        <script
+        {/* JSON trong div (không dùng script type=application/json — một số WebView/TV đọc textContent script không ổn định) */}
+        <div
           id="tv-chart-initial"
-          type="application/json"
-          // eslint-disable-next-line react/no-danger -- JSON cho script TV (WebView), escape < để an toàn HTML
+          style={{ display: "none" }}
+          aria-hidden
+          suppressHydrationWarning
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(chartPayload).replace(/</g, "\\u003c"),
           }}
