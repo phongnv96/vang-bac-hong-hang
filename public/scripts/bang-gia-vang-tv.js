@@ -86,16 +86,21 @@
   }
 
   function readCssFontSizePx(className, fallback) {
-    var el = document.createElement("span");
-    el.className = className;
-    el.textContent = "0";
-    el.setAttribute("aria-hidden", "true");
-    el.style.cssText =
-      "position:absolute;left:-9999px;top:0;visibility:hidden;pointer-events:none;white-space:nowrap;";
-    document.body.appendChild(el);
-    var px = parseFloat(getComputedStyle(el).fontSize) || fallback;
-    el.parentNode.removeChild(el);
-    return px;
+    try {
+      if (!document.body) return fallback;
+      var el = document.createElement("span");
+      el.className = className;
+      el.textContent = "0";
+      el.setAttribute("aria-hidden", "true");
+      el.style.cssText =
+        "position:absolute;left:-9999px;top:0;visibility:hidden;pointer-events:none;white-space:nowrap;";
+      document.body.appendChild(el);
+      var px = parseFloat(getComputedStyle(el).fontSize) || fallback;
+      el.parentNode.removeChild(el);
+      return px;
+    } catch (e) {
+      return fallback;
+    }
   }
 
   function formatVndTr(n) {
@@ -161,9 +166,20 @@
     canvas.height = Math.floor(ch * dpr);
     canvas.style.width = cw + "px";
     canvas.style.height = ch + "px";
+    canvas.style.display = "block";
+    canvas.style.visibility = "visible";
+    canvas.style.opacity = "1";
 
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.scale(dpr, dpr);
+    try {
+      if (ctx.setTransform) {
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+      }
+      ctx.scale(dpr, dpr);
+    } catch (eTransform) {
+      try {
+        ctx.scale(dpr, dpr);
+      } catch (e2) {}
+    }
 
     var fs = getTvFontSizes();
     var numFontEarly = getNumericFontFamily();
@@ -363,6 +379,9 @@
       try {
         delete window.__tvChartRefresh;
       } catch (e) {}
+      try {
+        delete window.__tvChartRedraw;
+      } catch (eDel) {}
     }
     if (tvChartState.onResize && window.removeEventListener) {
       window.removeEventListener("resize", tvChartState.onResize, false);
@@ -417,7 +436,7 @@
     setTimeout(bumpLayout, 1000);
 
     window.__tvChartRefresh = function () {
-      return fetch("/api/prices/history", { cache: "no-store" })
+      return fetch("/api/prices/history")
         .then(function (res) {
           if (!res.ok) return null;
           return res.json();
@@ -429,6 +448,14 @@
           drawTvGoldCanvas(tvChartState.canvas, tvChartState.payload);
         })
         .catch(function () {});
+    };
+
+    window.__tvChartRedraw = function () {
+      if (tvChartState.canvas && tvChartState.payload) {
+        try {
+          drawTvGoldCanvas(tvChartState.canvas, tvChartState.payload);
+        } catch (eR) {}
+      }
     };
   }
 
@@ -467,7 +494,7 @@
       return;
     }
 
-    fetch("/api/prices/history", { cache: "no-store" })
+    fetch("/api/prices/history")
       .then(function (res) {
         if (!res.ok) return null;
         return res.json();
@@ -514,6 +541,11 @@
     }
   }
   applySlides();
+  if (typeof window.__tvChartRedraw === "function") {
+    try {
+      window.__tvChartRedraw();
+    } catch (eSlide) {}
+  }
 
   function pad2(n) {
     var s = String(n);
@@ -543,18 +575,22 @@
     }
   }
 
-  async function loadPrices() {
-    try {
-      var res = await fetch("/api/prices", { cache: "no-store" });
-      if (!res.ok) return;
-      var data = await res.json();
-      updatePriceCells(data && data.prices);
-    } catch (e) {}
-    try {
-      if (window.__tvChartRefresh) {
-        await window.__tvChartRefresh();
-      }
-    } catch (e2) {}
+  /* Không dùng async/await — một số WebView/TV (Chromium <55) parse lỗi và cả file script không chạy */
+  function loadPrices() {
+    fetch("/api/prices")
+      .then(function (res) {
+        if (!res.ok) return null;
+        return res.json();
+      })
+      .then(function (data) {
+        if (data && data.prices) updatePriceCells(data.prices);
+        if (window.__tvChartRefresh) return window.__tvChartRefresh();
+      })
+      .catch(function () {});
+  }
+
+  function bootTvChart() {
+    initTvChartIfNeeded();
   }
 
   tick();
@@ -562,5 +598,20 @@
   setInterval(tick, 1000);
   setInterval(loadPrices, 30000);
 
-  initTvChartIfNeeded();
+  bootTvChart();
+  setTimeout(bootTvChart, 50);
+  setTimeout(bootTvChart, 250);
+  setTimeout(bootTvChart, 800);
+  setTimeout(bootTvChart, 2500);
+  if (document.readyState === "complete") {
+    setTimeout(bootTvChart, 0);
+  } else if (window.addEventListener) {
+    window.addEventListener(
+      "load",
+      function () {
+        setTimeout(bootTvChart, 0);
+      },
+      false
+    );
+  }
 })();
