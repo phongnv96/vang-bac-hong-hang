@@ -29,6 +29,99 @@
     bumpTimer: null,
   };
 
+  /** Cùng một lỗi chỉ hiện dialog một lần (tránh spam mỗi 30s khi poll) */
+  var tvErrorDialogState = {
+    seenKeys: {},
+  };
+
+  /**
+   * Hiện lỗi trên màn hình (Android TV không xem được console).
+   * @param {string} section — tên phần (API, canvas, payload…)
+   * @param {string} detail — mô tả lỗi
+   */
+  function showTvErrorDialog(section, detail) {
+    var text = String(detail == null ? "" : detail);
+    var title = String(section == null ? "Lỗi" : section);
+    try {
+      if (!document.body) {
+        alert("TV — " + title + "\n\n" + text);
+        return;
+      }
+    } catch (e0) {
+      return;
+    }
+
+    var existing = document.getElementById("tv-error-overlay");
+    if (existing && existing.parentNode) {
+      existing.parentNode.removeChild(existing);
+    }
+
+    var overlay = document.createElement("div");
+    overlay.id = "tv-error-overlay";
+    overlay.setAttribute("role", "alertdialog");
+    overlay.style.cssText =
+      "position:fixed;left:0;top:0;right:0;bottom:0;z-index:2147483647;" +
+      "background:rgba(0,0,0,0.88);display:flex;align-items:center;justify-content:center;" +
+      "padding:3vmin;box-sizing:border-box;";
+
+    var box = document.createElement("div");
+    box.style.cssText =
+      "background:#1a0a0a;border:4px solid #c9a84c;max-width:92vw;max-height:88vh;overflow:auto;" +
+      "padding:24px;border-radius:10px;box-shadow:0 0 40px rgba(201,168,76,0.35);";
+
+    var h = document.createElement("div");
+    h.textContent = "TV — " + title;
+    h.style.cssText =
+      "font-weight:700;font-size:clamp(18px,2.8vmin,28px);color:#f5d27a;margin-bottom:14px;" +
+      "font-family:Arial,Helvetica,sans-serif;letter-spacing:0.04em;";
+
+    var pre = document.createElement("pre");
+    pre.textContent = text;
+    pre.style.cssText =
+      "white-space:pre-wrap;word-break:break-word;font-size:clamp(14px,2.2vmin,22px);" +
+      "line-height:1.45;color:#fff;margin:0 0 18px 0;font-family:Arial,Helvetica,sans-serif;";
+
+    var btnRow = document.createElement("div");
+    btnRow.style.cssText = "display:flex;flex-wrap:wrap;gap:12px;align-items:center;";
+
+    var btnClose = document.createElement("button");
+    btnClose.type = "button";
+    btnClose.textContent = "Đóng";
+    btnClose.style.cssText =
+      "padding:14px 28px;font-size:clamp(16px,2.2vmin,22px);font-weight:700;" +
+      "background:linear-gradient(180deg,#e8c56a,#c9a84c);color:#2d0000;border:none;" +
+      "border-radius:8px;cursor:pointer;";
+    btnClose.onclick = function () {
+      if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+    };
+
+    btnRow.appendChild(btnClose);
+    box.appendChild(h);
+    box.appendChild(pre);
+    box.appendChild(btnRow);
+    overlay.appendChild(box);
+
+    try {
+      document.body.appendChild(overlay);
+    } catch (e1) {
+      try {
+        alert("TV — " + title + "\n\n" + text);
+      } catch (e2) {}
+    }
+  }
+
+  function reportTvError(section, detail) {
+    var d = String(detail == null ? "" : detail);
+    var s = String(section == null ? "Lỗi" : section);
+    try {
+      window.__tvChartDiag = s + ": " + d.slice(0, 240);
+    } catch (e3) {}
+    var key = s + "|" + d;
+    if (tvErrorDialogState.seenKeys[key]) return;
+    tvErrorDialogState.seenKeys[key] = true;
+    showTvErrorDialog(s, d);
+  }
+
   function formatVND(value) {
     return String(value).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   }
@@ -398,7 +491,10 @@
   function mountTvGoldChart(canvas, payload) {
     destroyTvGoldChart();
     var ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    if (!ctx) {
+      reportTvError("Canvas 2D", "getContext('2d') trả về null — WebView có thể tắt canvas hoặc hết bộ nhớ.");
+      return;
+    }
 
     tvChartState.canvas = canvas;
     tvChartState.payload = clonePayload(payload);
@@ -413,7 +509,14 @@
         }
       }
       if (tvChartState.canvas && tvChartState.payload) {
-        drawTvGoldCanvas(tvChartState.canvas, tvChartState.payload);
+        try {
+          drawTvGoldCanvas(tvChartState.canvas, tvChartState.payload);
+        } catch (eDraw) {
+          reportTvError(
+            "Biểu đồ — vẽ canvas",
+            eDraw && eDraw.message ? eDraw.message : String(eDraw)
+          );
+        }
       }
     }
 
@@ -438,23 +541,43 @@
     window.__tvChartRefresh = function () {
       return fetch("/api/prices/history")
         .then(function (res) {
-          if (!res.ok) return null;
+          if (!res.ok) {
+            reportTvError(
+              "Làm mới chart — HTTP",
+              "/api/prices/history → " + res.status + " " + (res.statusText || "")
+            );
+            return null;
+          }
           return res.json();
         })
         .then(function (json) {
           if (!json || !json.chart || json.chart.empty) return;
           if (!tvChartState.canvas) return;
           tvChartState.payload = clonePayload(json.chart);
-          drawTvGoldCanvas(tvChartState.canvas, tvChartState.payload);
+          try {
+            drawTvGoldCanvas(tvChartState.canvas, tvChartState.payload);
+          } catch (eDraw2) {
+            reportTvError(
+              "Làm mới chart — vẽ",
+              eDraw2 && eDraw2.message ? eDraw2.message : String(eDraw2)
+            );
+          }
         })
-        .catch(function () {});
+        .catch(function (err) {
+          reportTvError(
+            "Làm mới chart — mạng",
+            err && err.message ? err.message : "fetch thất bại"
+          );
+        });
     };
 
     window.__tvChartRedraw = function () {
       if (tvChartState.canvas && tvChartState.payload) {
         try {
           drawTvGoldCanvas(tvChartState.canvas, tvChartState.payload);
-        } catch (eR) {}
+        } catch (eR) {
+          reportTvError("Biểu đồ — vẽ lại", eR && eR.message ? eR.message : String(eR));
+        }
       }
     };
   }
@@ -470,6 +593,11 @@
     try {
       return JSON.parse(raw);
     } catch (e) {
+      var em = e && e.message ? e.message : String(e);
+      reportTvError(
+        "Payload biểu đồ (JSON)",
+        "Không parse được dữ liệu nhúng trong trang.\n" + em + "\n\n(đầu chuỗi)\n" + raw.slice(0, 180)
+      );
       return null;
     }
   }
@@ -484,7 +612,9 @@
         mountTvGoldChart(canvas, pl);
         window.__tvChartDiag = "ok-canvas";
       } catch (e) {
-        window.__tvChartDiag = e && e.message ? e.message : String(e);
+        var em = e && e.message ? e.message : String(e);
+        window.__tvChartDiag = em;
+        reportTvError("Biểu đồ — khởi tạo (mount)", em);
       }
     }
 
@@ -496,18 +626,34 @@
 
     fetch("/api/prices/history")
       .then(function (res) {
-        if (!res.ok) return null;
+        if (!res.ok) {
+          reportTvError(
+            "API /api/prices/history",
+            "HTTP " + res.status + " " + (res.statusText || "") + " — không tải được dữ liệu chart."
+          );
+          return null;
+        }
         return res.json();
       })
       .then(function (json) {
-        if (json && json.chart && !json.chart.empty) {
+        if (json == null) return;
+        if (json.chart && !json.chart.empty) {
           tryMount(json.chart);
-        } else if (!window.__tvChartDiag) {
+          return;
+        }
+        var hint =
+          json.chart && json.chart.empty
+            ? "Server trả chart.empty (chưa có lịch sử giá theo ngày)."
+            : "Phản hồi JSON không có chart hợp lệ.";
+        if (window.__tvChartDiag !== "ok-canvas") {
           window.__tvChartDiag = payload ? "empty series" : "no embedded payload";
+          reportTvError("Biểu đồ — không có dữ liệu", hint);
         }
       })
-      .catch(function () {
-        if (!window.__tvChartDiag) window.__tvChartDiag = "history fetch failed";
+      .catch(function (err) {
+        var em = err && err.message ? err.message : "Lỗi mạng hoặc fetch bị chặn.";
+        window.__tvChartDiag = "history fetch failed";
+        reportTvError("API /api/prices/history (mạng)", em);
       });
   }
 
@@ -552,15 +698,53 @@
     return s.length < 2 ? "0" + s : s;
   }
 
+  var clockTimerId = null;
+
+  function getClockElement() {
+    /* Luôn query lại — WebView/Next có thể thay nút #clock sau lần render đầu */
+    return document.getElementById("clock");
+  }
+
+  function setClockDom(el, str) {
+    if (!el) return;
+    try {
+      el.textContent = str;
+    } catch (e1) {
+      try {
+        el.innerText = str;
+      } catch (e2) {}
+    }
+  }
+
   function tick() {
     var now = new Date();
     var d = pad2(now.getDate());
     var mo = pad2(now.getMonth() + 1);
     var h = pad2(now.getHours());
-    var m = pad2(now.getMinutes());
+    var mi = pad2(now.getMinutes());
     var s = pad2(now.getSeconds());
-    var el = document.getElementById("clock");
-    if (el) el.textContent = d + "/" + mo + "/" + now.getFullYear() + "  |  " + h + ":" + m + ":" + s;
+    var str = d + "/" + mo + "/" + now.getFullYear() + "  |  " + h + ":" + mi + ":" + s;
+    setClockDom(getClockElement(), str);
+  }
+
+  /**
+   * WebView/TV thường throttle hoặc “đóng băng” setInterval — dùng setTimeout lặp + căn mép giây.
+   */
+  function scheduleClockTick() {
+    if (clockTimerId != null) {
+      try {
+        clearTimeout(clockTimerId);
+      } catch (eC) {}
+      clockTimerId = null;
+    }
+    try {
+      tick();
+    } catch (eT) {}
+    var ms = 1000 - (Date.now() % 1000);
+    if (ms < 80) {
+      ms += 1000;
+    }
+    clockTimerId = setTimeout(scheduleClockTick, ms);
   }
 
   function updatePriceCells(prices) {
@@ -579,14 +763,25 @@
   function loadPrices() {
     fetch("/api/prices")
       .then(function (res) {
-        if (!res.ok) return null;
+        if (!res.ok) {
+          reportTvError(
+            "API /api/prices",
+            "HTTP " + res.status + " " + (res.statusText || "") + " — bảng giá có thể không cập nhật."
+          );
+          return null;
+        }
         return res.json();
       })
       .then(function (data) {
         if (data && data.prices) updatePriceCells(data.prices);
         if (window.__tvChartRefresh) return window.__tvChartRefresh();
       })
-      .catch(function () {});
+      .catch(function (err) {
+        reportTvError(
+          "API /api/prices (mạng)",
+          err && err.message ? err.message : "Không gọi được /api/prices."
+        );
+      });
   }
 
   function bootTvChart() {
@@ -594,9 +789,39 @@
   }
 
   tick();
+  scheduleClockTick();
   loadPrices();
-  setInterval(tick, 1000);
   setInterval(loadPrices, 30000);
+
+  if (document.addEventListener) {
+    document.addEventListener(
+      "visibilitychange",
+      function () {
+        if (document.hidden) return;
+        tick();
+        scheduleClockTick();
+      },
+      false
+    );
+    window.addEventListener(
+      "pageshow",
+      function (ev) {
+        if (ev && ev.persisted) {
+          tick();
+          scheduleClockTick();
+        }
+      },
+      false
+    );
+    window.addEventListener(
+      "load",
+      function () {
+        tick();
+        scheduleClockTick();
+      },
+      false
+    );
+  }
 
   bootTvChart();
   setTimeout(bootTvChart, 50);
