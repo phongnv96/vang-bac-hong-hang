@@ -247,10 +247,6 @@
   overflow: hidden;
 }
 
-/* Slide bảng giá: căn nội dung giữa màn hình theo chiều dọc */
-#slide-table {
-  justify-content: center;
-}
 
 .tv-slide-panel-active {
   opacity: 1;
@@ -275,6 +271,7 @@
   display: flex;
   flex-direction: column;
   align-items: stretch;
+  overflow: hidden;
 }
 
 .tv-slide-chart .tv-chart-heading {
@@ -294,8 +291,7 @@
 .tv-chart-wrap {
   position: relative;
   flex: 1 1 auto;
-  min-height: 380px;
-  min-height: 48vh;
+  min-height: 280px;
   width: 100%;
   max-width: none;
   margin: 0.5vh 0 0;
@@ -306,7 +302,6 @@
   display: block;
   width: 100%;
   height: 100%;
-  min-height: 360px;
 }
 
 .tv-chart-empty {

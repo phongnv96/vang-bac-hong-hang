@@ -178,7 +178,7 @@ export default async function Home() {
         />
 
         <div className="tv-slides-stack">
-          <div id="slide-table" className="tv-slide-panel tv-slide-panel-active">
+          <div id="slide-table" className="tv-slide-panel tv-slide-panel-active" style={{ justifyContent: "center" }}>
         {/* Price Table */}
         <table className="price-table" style={{ width: "100%", borderCollapse: "separate", borderSpacing: "0 1vh" }}>
           <colgroup>
