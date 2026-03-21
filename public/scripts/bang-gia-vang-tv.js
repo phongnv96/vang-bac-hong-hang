@@ -1,6 +1,5 @@
 /**
- * Bảng giá TV: đồng hồ, poll giá, luân phiên slide, biểu đồ Chart.js (DOM + script thuần, WebView 66).
- * Không phụ thuộc bundle React — Chart tải từ /scripts/chart-3.9.1.min.js
+ * Bảng giá TV: đồng hồ, poll giá, luân phiên slide, biểu đồ giá (Canvas 2D thuần — tương thích WebView Android ~66, không Chart.js).
  */
 (function () {
   if (typeof window !== "undefined" && window.__tvBangGiaVanInit) {
@@ -22,8 +21,13 @@
     lineFlat: "rgba(245, 210, 122, 0.95)",
   };
 
-  var chartInstance = null;
-  var moneyPlugin = null;
+  /** Trạng thái chart canvas (không dùng Chart.js) */
+  var tvChartState = {
+    canvas: null,
+    payload: null,
+    onResize: null,
+    bumpTimer: null,
+  };
 
   function formatVND(value) {
     return String(value).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
@@ -63,9 +67,7 @@
     return { backgrounds: backgrounds, borders: borders };
   }
 
-  function segmentBorderByChange(ctx) {
-    var v0 = Number(ctx.p0.parsed.y);
-    var v1 = Number(ctx.p1.parsed.y);
+  function segmentLineColor(v0, v1) {
     var k = dayDeltaKind(v1, v0);
     if (k === "up") return DAY_CHANGE.lineUp;
     if (k === "down") return DAY_CHANGE.lineDown;
@@ -115,47 +117,245 @@
     };
   }
 
-  function buildMoneyAtPointsPlugin(getLabelFontPx) {
+  function clonePayload(payload) {
     return {
-      id: "moneyAtPoints",
-      afterDatasetsDraw: function (chart) {
-        var ds0 = chart.data.datasets[0];
-        var data = ds0 && ds0.data;
-        if (!data || !data.length) return;
-
-        var meta = chart.getDatasetMeta(0);
-        if (!meta || !meta.data || !meta.data.length) return;
-
-        var fontPx = getLabelFontPx();
-        var ctx = chart.ctx;
-        var family = getNumericFontFamily();
-        ctx.save();
-        ctx.font = "600 " + fontPx + "px " + family;
-        ctx.fillStyle = "#fff176";
-        ctx.textAlign = "center";
-
-        var gap = Math.max(6, fontPx * 0.55);
-        var ptBg = ds0.pointBackgroundColor;
-
-        meta.data.forEach(function (element, i) {
-          var raw = data[i];
-          var v = typeof raw === "number" ? raw : Number(raw);
-          if (!isFinite(v)) return;
-          var xy = element.getProps(["x", "y"], true);
-          var x = xy.x;
-          var y = xy.y;
-          var txt = formatVndTr(v);
-          var col = Array.isArray(ptBg) ? ptBg[i] : ptBg;
-          ctx.fillStyle = typeof col === "string" ? col : DAY_CHANGE.flatFill;
-          var above = i % 2 === 0;
-          ctx.textBaseline = above ? "bottom" : "top";
-          var dy = above ? -gap : gap;
-          ctx.fillText(txt, x, Math.round(y + dy));
-        });
-
-        ctx.restore();
-      },
+      labels: payload.labels ? payload.labels.slice() : [],
+      values: payload.values ? payload.values.slice() : [],
+      title: payload.title || "",
+      empty: !!payload.empty,
     };
+  }
+
+  function measureCanvasCssSize(canvas, payload) {
+    var wrap = canvas.parentElement;
+    var w = wrap ? wrap.clientWidth : 0;
+    var h = wrap ? wrap.clientHeight : 0;
+    if (w < 80) {
+      w = window.innerWidth || (document.documentElement && document.documentElement.clientWidth) || 800;
+      w = Math.min(w - 32, 1200);
+    }
+    if (h < 80) {
+      var ih = window.innerHeight || (document.documentElement && document.documentElement.clientHeight) || 600;
+      /* Ưu tiên chart cao trên TV (trước ~34% viewport → ~48%) */
+      h = Math.max(520, Math.round(ih * 0.58));
+    }
+    return { w: Math.floor(w), h: Math.floor(h) };
+  }
+
+  function drawTvGoldCanvas(canvas, payload) {
+    var ctx = canvas.getContext("2d");
+    if (!ctx || !payload || payload.empty) return;
+
+    var values = payload.values;
+    var labels = payload.labels;
+    var n = values.length;
+    if (!n) return;
+
+    var size = measureCanvasCssSize(canvas, payload);
+    var cw = size.w;
+    var ch = size.h;
+    var dpr = window.devicePixelRatio || 1;
+    if (dpr < 1) dpr = 1;
+
+    canvas.width = Math.floor(cw * dpr);
+    canvas.height = Math.floor(ch * dpr);
+    canvas.style.width = cw + "px";
+    canvas.style.height = ch + "px";
+
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.scale(dpr, dpr);
+
+    var fs = getTvFontSizes();
+    var numFontEarly = getNumericFontFamily();
+    var titleBlock = Math.max(36, fs.legend * 2);
+    var sidePad = 16;
+
+    /* Bề rộng nhãn giá (…tr) — tránh cắt ở điểm đầu/cuối */
+    ctx.font = "600 " + fs.pointLabel + "px " + numFontEarly;
+    var priceLabelMaxW = 0;
+    var pi;
+    for (pi = 0; pi < n; pi++) {
+      var pw = ctx.measureText(formatVndTr(Number(values[pi]))).width;
+      if (pw > priceLabelMaxW) priceLabelMaxW = pw;
+    }
+    if (priceLabelMaxW < 1) priceLabelMaxW = fs.pointLabel * 4;
+    var lrInset = Math.min(Math.ceil(priceLabelMaxW * 0.55) + 14, Math.floor(cw * 0.22));
+
+    /* Nhãn ngày nằm ngang — cần đủ cao chân chart */
+    ctx.font = "600 " + fs.axis + "px " + numFontEarly;
+    var dateLineH = Math.ceil(fs.axis * 1.35) + 8;
+    var bottomAxis = Math.max(58, dateLineH + 26);
+
+    /* Chừa chỗ phía trên plot cho nhãn giá lệch lên */
+    var labelPad = Math.max(Math.round(fs.pointLabel * 1.45), Math.round(priceLabelMaxW * 0.35) + 28);
+
+    var plotLeft = sidePad + lrInset;
+    var plotRight = cw - sidePad - lrInset;
+    var plotTop = titleBlock + labelPad;
+    var plotBottom = ch - bottomAxis;
+    var plotW = plotRight - plotLeft;
+    var plotH = plotBottom - plotTop;
+    if (plotW < 30 || plotH < 30) return;
+
+    var vmin = Infinity;
+    var vmax = -Infinity;
+    var i;
+    for (i = 0; i < n; i++) {
+      var vv = Number(values[i]);
+      if (isFinite(vv)) {
+        if (vv < vmin) vmin = vv;
+        if (vv > vmax) vmax = vv;
+      }
+    }
+    if (!isFinite(vmin) || !isFinite(vmax)) return;
+    if (vmin === vmax) {
+      vmin -= 1;
+      vmax += 1;
+    }
+    var vSpan = vmax - vmin;
+    /* Padding trục Y vừa đủ: đường dùng gần hết chiều cao vùng vẽ (không kéo “rộng” mốc tiền) */
+    var vpadEach = vSpan * 0.018;
+    vmin -= vpadEach;
+    vmax += vpadEach;
+    vSpan = vmax - vmin || 1;
+
+    function xAt(index) {
+      if (n <= 1) return plotLeft + plotW / 2;
+      return plotLeft + (plotW * index) / (n - 1);
+    }
+    function yAt(v) {
+      return plotTop + ((vmax - v) / vSpan) * plotH;
+    }
+
+    var pts = [];
+    for (i = 0; i < n; i++) {
+      var nv = Number(values[i]);
+      pts.push({ x: xAt(i), y: yAt(nv), v: nv });
+    }
+
+    var styles = pointStylesForValues(values);
+    var numFont = numFontEarly;
+
+    ctx.clearRect(0, 0, cw, ch);
+
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+    ctx.font = "bold " + fs.legend + "px 'Playfair Display', Georgia, serif";
+    ctx.fillStyle = "#f5d27a";
+    ctx.fillText(payload.title, cw / 2, 6);
+
+    ctx.strokeStyle = "rgba(201, 168, 76, 0.12)";
+    ctx.lineWidth = 1;
+    var gn;
+    for (gn = 0; gn <= 4; gn++) {
+      var gy = plotTop + (plotH * gn) / 4;
+      ctx.beginPath();
+      ctx.moveTo(plotLeft, gy);
+      ctx.lineTo(plotRight, gy);
+      ctx.stroke();
+    }
+
+    ctx.strokeStyle = "rgba(201, 168, 76, 0.1)";
+    var vx;
+    for (vx = 0; vx <= 6; vx++) {
+      var gx = plotLeft + (plotW * vx) / 6;
+      ctx.beginPath();
+      ctx.moveTo(gx, plotTop);
+      ctx.lineTo(gx, plotBottom);
+      ctx.stroke();
+    }
+
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, plotBottom);
+    for (i = 0; i < n; i++) {
+      ctx.lineTo(pts[i].x, pts[i].y);
+    }
+    ctx.lineTo(pts[n - 1].x, plotBottom);
+    ctx.closePath();
+    ctx.fillStyle = "rgba(245, 210, 122, 0.14)";
+    ctx.fill();
+
+    var lw = Math.max(2, Math.round(fs.axis / 16));
+    ctx.lineWidth = lw;
+    ctx.lineJoin = "round";
+    ctx.lineCap = "round";
+    for (i = 0; i < n - 1; i++) {
+      ctx.strokeStyle = segmentLineColor(pts[i].v, pts[i + 1].v);
+      ctx.beginPath();
+      ctx.moveTo(pts[i].x, pts[i].y);
+      ctx.lineTo(pts[i + 1].x, pts[i + 1].y);
+      ctx.stroke();
+    }
+
+    var pr = Math.max(4, Math.round(fs.axis / 11));
+    var pbw = Math.max(1, Math.round(lw / 2));
+    for (i = 0; i < n; i++) {
+      ctx.beginPath();
+      ctx.arc(pts[i].x, pts[i].y, pr, 0, Math.PI * 2);
+      ctx.fillStyle = styles.backgrounds[i];
+      ctx.fill();
+      ctx.strokeStyle = styles.borders[i];
+      ctx.lineWidth = pbw;
+      ctx.stroke();
+    }
+
+    ctx.font = "600 " + fs.pointLabel + "px " + numFont;
+    ctx.textAlign = "center";
+    var gap = Math.max(8, fs.pointLabel * 0.55);
+    var lowBand = plotTop + plotH * 0.68;
+    var highBand = plotTop + plotH * 0.32;
+    for (i = 0; i < n; i++) {
+      if (!isFinite(pts[i].v)) continue;
+      var txt = formatVndTr(pts[i].v);
+      ctx.fillStyle = styles.backgrounds[i];
+      var py = pts[i].y;
+      var above;
+      if (py >= lowBand) {
+        above = true;
+      } else if (py <= highBand) {
+        above = false;
+      } else {
+        above = i % 2 === 0;
+      }
+      ctx.textBaseline = above ? "bottom" : "top";
+      var dy = above ? -gap : gap;
+      ctx.fillText(txt, pts[i].x, Math.round(py + dy));
+    }
+
+    /* Trục X: chữ ngang, bước theo chỗ trống để không đè nhau */
+    ctx.fillStyle = "#c9a84c";
+    ctx.font = "600 " + fs.axis + "px " + numFont;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+    var minDateGap = ctx.measureText("99/99").width + 14;
+    var ui;
+    for (ui = 0; ui < n; ui++) {
+      var uw = ctx.measureText(labels[ui] != null ? String(labels[ui]) : "").width + 14;
+      if (uw > minDateGap) minDateGap = uw;
+    }
+    var maxSlots = Math.max(2, Math.floor(plotW / minDateGap));
+    var dateStep = Math.max(1, Math.ceil(n / maxSlots));
+    var dateY = plotBottom + 14;
+    var drawnDates = [];
+    for (i = 0; i < n; i += dateStep) {
+      drawnDates.push(i);
+    }
+    if (n > 1 && drawnDates[drawnDates.length - 1] !== n - 1) {
+      var lastI = n - 1;
+      var prevIx = drawnDates[drawnDates.length - 1];
+      if (pts[lastI].x - pts[prevIx].x >= minDateGap * 0.85) {
+        drawnDates.push(lastI);
+      } else if (drawnDates.length > 1) {
+        drawnDates[drawnDates.length - 1] = lastI;
+      } else {
+        drawnDates.push(lastI);
+      }
+    }
+    for (i = 0; i < drawnDates.length; i++) {
+      var di = drawnDates[i];
+      var dlab = labels[di] != null ? String(labels[di]) : "";
+      ctx.fillText(dlab, pts[di].x, dateY);
+    }
   }
 
   function destroyTvGoldChart() {
@@ -164,145 +364,72 @@
         delete window.__tvChartRefresh;
       } catch (e) {}
     }
-    if (moneyPlugin && typeof Chart !== "undefined" && Chart.unregister) {
-      Chart.unregister(moneyPlugin);
-      moneyPlugin = null;
+    if (tvChartState.onResize && window.removeEventListener) {
+      window.removeEventListener("resize", tvChartState.onResize, false);
     }
-    if (chartInstance) {
-      chartInstance.destroy();
-      chartInstance = null;
+    tvChartState.onResize = null;
+    if (tvChartState.bumpTimer) {
+      clearTimeout(tvChartState.bumpTimer);
+      tvChartState.bumpTimer = null;
     }
+    tvChartState.canvas = null;
+    tvChartState.payload = null;
   }
 
   function mountTvGoldChart(canvas, payload) {
     destroyTvGoldChart();
     var ctx = canvas.getContext("2d");
-    if (!ctx || typeof Chart === "undefined") return;
+    if (!ctx) return;
 
-    var fs = getTvFontSizes();
+    tvChartState.canvas = canvas;
+    tvChartState.payload = clonePayload(payload);
 
-    moneyPlugin = buildMoneyAtPointsPlugin(function () {
-      return getTvFontSizes().pointLabel;
-    });
-    Chart.register(moneyPlugin);
-
-    var edgePad = Math.max(18, Math.min(64, fs.pointLabel * 1.9));
-    var numFont = getNumericFontFamily();
-    var pointStyles = pointStylesForValues(payload.values);
-
-    function bumpChartLayout() {
-      if (!chartInstance || !chartInstance.resize) return;
-      var c = chartInstance.canvas;
-      var wrap = c && c.parentElement;
+    function bumpLayout() {
+      var wrap = canvas.parentElement;
       if (wrap) {
-        var h = window.innerHeight || (document.documentElement && document.documentElement.clientHeight) || 600;
-        var minPx = Math.max(280, Math.round(h * 0.34));
-        if (wrap.offsetHeight < 120 || wrap.clientHeight < 120) {
+        var ih = window.innerHeight || (document.documentElement && document.documentElement.clientHeight) || 600;
+        var minPx = Math.max(520, Math.round(ih * 0.58));
+        if (wrap.offsetHeight < minPx * 0.85 || wrap.clientHeight < minPx * 0.85) {
           wrap.style.minHeight = minPx + "px";
         }
       }
-      chartInstance.resize();
+      if (tvChartState.canvas && tvChartState.payload) {
+        drawTvGoldCanvas(tvChartState.canvas, tvChartState.payload);
+      }
     }
 
-    chartInstance = new Chart(ctx, {
-      type: "line",
-      data: {
-        labels: payload.labels.slice(),
-        datasets: [
-          {
-            label: payload.title,
-            data: payload.values.slice(),
-            borderColor: DAY_CHANGE.lineFlat,
-            segment: {
-              borderColor: function (c) {
-                return segmentBorderByChange(c);
-              },
-            },
-            backgroundColor: "rgba(245, 210, 122, 0.12)",
-            borderWidth: Math.max(2, fs.axis / 18),
-            pointRadius: Math.max(4, fs.axis / 12),
-            pointHoverRadius: Math.max(6, fs.axis / 10),
-            pointBackgroundColor: pointStyles.backgrounds,
-            pointBorderColor: pointStyles.borders,
-            pointHoverBackgroundColor: pointStyles.backgrounds,
-            pointHoverBorderColor: pointStyles.borders,
-            pointBorderWidth: Math.max(1, fs.axis / 28),
-            tension: 0.2,
-            fill: true,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        layout: {
-          padding: { top: edgePad, left: 0, right: 10, bottom: edgePad },
-        },
-        interaction: { mode: "index", intersect: false },
-        plugins: {
-          legend: {
-            display: true,
-            labels: {
-              color: "#f5d27a",
-              font: { size: fs.legend, family: "'Playfair Display', serif", weight: "bold" },
-              padding: Math.max(12, fs.legend * 0.5),
-            },
-          },
-          tooltip: { enabled: false },
-          title: { display: false },
-        },
-        scales: {
-          x: {
-            ticks: {
-              color: "#c9a84c",
-              font: { size: fs.axis, family: numFont, weight: 600 },
-              maxRotation: 45,
-              minRotation: 0,
-              autoSkip: true,
-              maxTicksLimit: 16,
-            },
-            grid: { color: "rgba(201, 168, 76, 0.15)" },
-          },
-          y: {
-            ticks: { display: false },
-            grid: { color: "rgba(201, 168, 76, 0.12)" },
-            border: { display: false },
-          },
-        },
-      },
-    });
+    function onResize() {
+      if (tvChartState.bumpTimer) clearTimeout(tvChartState.bumpTimer);
+      tvChartState.bumpTimer = setTimeout(function () {
+        tvChartState.bumpTimer = null;
+        bumpLayout();
+      }, 100);
+    }
 
-    var refresh = function () {
+    tvChartState.onResize = onResize;
+    if (window.addEventListener) {
+      window.addEventListener("resize", onResize, false);
+    }
+
+    bumpLayout();
+    setTimeout(bumpLayout, 50);
+    setTimeout(bumpLayout, 300);
+    setTimeout(bumpLayout, 1000);
+
+    window.__tvChartRefresh = function () {
       return fetch("/api/prices/history", { cache: "no-store" })
         .then(function (res) {
           if (!res.ok) return null;
           return res.json();
         })
         .then(function (json) {
-          if (!json || !json.chart || chartInstance === null || json.chart.empty) return;
-          var next = json.chart;
-          chartInstance.data.labels = next.labels.slice();
-          var ds = chartInstance.data.datasets[0];
-          if (ds) {
-            ds.data = next.values.slice();
-            ds.label = next.title;
-            var st = pointStylesForValues(next.values);
-            ds.pointBackgroundColor = st.backgrounds;
-            ds.pointBorderColor = st.borders;
-            ds.pointHoverBackgroundColor = st.backgrounds;
-            ds.pointHoverBorderColor = st.borders;
-          }
-          chartInstance.update();
+          if (!json || !json.chart || json.chart.empty) return;
+          if (!tvChartState.canvas) return;
+          tvChartState.payload = clonePayload(json.chart);
+          drawTvGoldCanvas(tvChartState.canvas, tvChartState.payload);
         })
         .catch(function () {});
     };
-
-    window.__tvChartRefresh = refresh;
-
-    bumpChartLayout();
-    setTimeout(bumpChartLayout, 50);
-    setTimeout(bumpChartLayout, 300);
-    setTimeout(bumpChartLayout, 1000);
   }
 
   function parseInitialChartPayload() {
@@ -320,58 +447,18 @@
     }
   }
 
-  function ensureChartJs(callback) {
-    if (typeof Chart !== "undefined" && Chart && typeof Chart.register === "function") {
-      callback();
-      return;
-    }
-    var existing = document.getElementById("tv-chart-js");
-    if (existing) {
-      if (existing.getAttribute("data-loaded") === "1") {
-        callback();
-        return;
-      }
-      existing.addEventListener("load", function () {
-        callback();
-      });
-      existing.addEventListener("error", function () {
-        callback();
-      });
-      return;
-    }
-    var s = document.createElement("script");
-    s.id = "tv-chart-js";
-    /* false: WebView cũ thường chạy theo thứ tự thêm vào, tránh init chart trước khi Chart global có */
-    s.async = false;
-    s.src = "/scripts/chart-3.9.1.min.js";
-    s.onload = function () {
-      s.setAttribute("data-loaded", "1");
-      callback();
-    };
-    s.onerror = function () {
-      callback();
-    };
-    document.head.appendChild(s);
-  }
-
   function initTvChartIfNeeded() {
     var canvas = document.getElementById("tv-gold-price-chart");
     if (!canvas) return;
 
-    function tryMount(payload) {
-      if (!payload || payload.empty) return;
-      ensureChartJs(function () {
-        if (typeof Chart === "undefined") {
-          window.__tvChartDiag = "chart.js not loaded";
-          return;
-        }
-        try {
-          mountTvGoldChart(canvas, payload);
-          window.__tvChartDiag = "ok";
-        } catch (e) {
-          window.__tvChartDiag = e && e.message ? e.message : String(e);
-        }
-      });
+    function tryMount(pl) {
+      if (!pl || pl.empty) return;
+      try {
+        mountTvGoldChart(canvas, pl);
+        window.__tvChartDiag = "ok-canvas";
+      } catch (e) {
+        window.__tvChartDiag = e && e.message ? e.message : String(e);
+      }
     }
 
     var payload = parseInitialChartPayload();
@@ -427,10 +514,6 @@
     }
   }
   applySlides();
-  // setInterval(function () {
-  //   showTable = !showTable;
-  //   applySlides();
-  // }, slideSec * 1000);
 
   function pad2(n) {
     var s = String(n);
