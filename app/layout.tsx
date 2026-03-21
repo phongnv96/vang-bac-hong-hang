@@ -1,5 +1,46 @@
 import type { Metadata } from "next";
+import { Cormorant_Garamond, Montserrat, Roboto_Condensed, Playfair_Display } from "next/font/google";
 import "./globals.css";
+
+/* ──────────────────────────────────────────────
+   Font Configuration (self-hosted via next/font)
+   ────────────────────────────────────────────── */
+
+/** Playfair Display — for Price Board Titles */
+const playfair = Playfair_Display({
+  subsets: ["latin", "vietnamese"],
+  weight: ["700", "900"],
+  variable: "--font-playfair",
+  display: "swap",
+});
+
+/** Display / Heading font — serif, luxury feel */
+const cormorant = Cormorant_Garamond({
+  subsets: ["latin", "vietnamese"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-heading",
+  display: "swap",
+});
+
+/** Body font — sans-serif, modern and elegant */
+const montserrat = Montserrat({
+  subsets: ["latin", "vietnamese"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-body",
+  display: "swap",
+});
+
+/** Price Board font — technical, condensed */
+const robotoCondensed = Roboto_Condensed({
+  subsets: ["latin", "vietnamese"],
+  weight: ["300", "400", "500", "700"],
+  variable: "--font-roboto-condensed",
+  display: "swap",
+});
+
+/* ──────────────────────────────────────────────
+   Metadata
+   ────────────────────────────────────────────── */
 
 const getBaseUrl = () => {
   if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL;
@@ -9,7 +50,7 @@ const getBaseUrl = () => {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL(getBaseUrl()), // Tự động lấy domain từ Vercel khi deploy
+  metadataBase: new URL(getBaseUrl()),
   title: "Bảng Giá Vàng - Vàng Bạc Hồng Hằng",
   description: "Trang cập nhật giá vàng bạc 9999, vàng tây, vàng ý, trang sức trực tuyến mỗi ngày tại Vàng Bạc Hồng Hằng - Hải Lựu, Sông Lô, Vĩnh Phúc.",
   keywords: ["Giá vàng", "Vàng bạc Hồng Hằng", "Giá vàng 9999", "Giá vàng hôm nay", "Trang sức vàng", "Tiệm vàng Hồng Hằng", "Sông Lô", "Vĩnh Phúc"],
@@ -21,12 +62,15 @@ export const metadata: Metadata = {
     siteName: "Vàng Bạc Hồng Hằng",
     locale: "vi_VN",
     type: "website",
-    // Next.js sẽ tự động dùng file opengraph-image.tsx nên không cần chỉ định mảng images ở đây
   },
   alternates: {
     canonical: "/",
   },
 };
+
+/* ──────────────────────────────────────────────
+   Root Layout
+   ────────────────────────────────────────────── */
 
 export default function RootLayout({
   children,
@@ -34,17 +78,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="vi">
-      <meta name="viewport" content="width=device-width, initial-scale=1" />
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Roboto+Condensed:wght@400;700&display=swap"
-          rel="stylesheet"
-        />
-      </head>
-      <body>{children}</body>
+    <html lang="vi" className={`${cormorant.variable} ${montserrat.variable} ${robotoCondensed.variable} ${playfair.variable} dark`}>
+      <body className="font-sans antialiased">
+        {children}
+      </body>
     </html>
   );
 }
+

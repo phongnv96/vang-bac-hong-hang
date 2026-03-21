@@ -1,0 +1,63 @@
+/* TV display page: hide cursor + no scroll on large screens */
+.tvDisplay {
+  cursor: none;
+  overflow: hidden;
+}
+@media (max-width: 1024px) {
+  .tvDisplay {
+    cursor: auto;
+    overflow: auto;
+  }
+}
+
+/* TV content padding */
+.tvContent {
+  padding: 4vh 4vw;
+}
+@media (max-width: 1024px) {
+  .tvContent { padding: 24px 48px; }
+}
+@media (max-width: 640px) {
+  .tvContent { padding: 24px 32px; }
+}
+
+/* Table spacing */
+.priceTable {
+  border-collapse: separate;
+  border-spacing: 0 1vh;
+}
+@media (max-width: 1024px) {
+  .priceTable { border-spacing: 0 6px; }
+}
+@media (max-width: 640px) {
+  .priceTable { border-spacing: 0 4px; }
+}
+
+.frameOuter {
+  inset: 1.5vh;
+  border: 3px solid var(--gold);
+}
+
+.frameInner {
+  inset: 2.5vh;
+  border: 1px solid rgba(201, 168, 76, 0.4);
+}
+
+.subtitle {
+  font-family: var(--font-playfair), serif;
+  color: #ffe599;
+  letter-spacing: 0.15em;
+  text-shadow: 0 0 10px rgba(255, 229, 153, 0.6);
+  white-space: nowrap;
+}
+
+.clock {
+  letter-spacing: 0.15em;
+  text-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+  white-space: nowrap;
+}
+
+.footer {
+  color: rgba(201, 168, 76, 0.5);
+  letter-spacing: 0.2em;
+}

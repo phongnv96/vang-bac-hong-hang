@@ -1,0 +1,60 @@
+.loginBox {
+  width: 50vw;
+  padding: 5vh 5vw;
+  background: linear-gradient(135deg, #2a0000, #1a0000);
+  border: 2px solid var(--gold);
+  box-shadow: 0 0 60px rgba(201, 168, 76, 0.15);
+}
+@media (max-width: 1024px) {
+  .loginBox {
+    width: 80vw;
+    padding: 32px 24px;
+  }
+}
+@media (max-width: 640px) {
+  .loginBox {
+    width: 92vw;
+    padding: 24px 16px;
+  }
+}
+
+.title {
+  font-family: var(--font-playfair), serif;
+  color: var(--gold-light);
+}
+
+.errorText {
+  color: #ff6666;
+}
+
+.backLink {
+  color: rgba(201, 168, 76, 0.6);
+}
+
+.backLink:hover {
+  color: var(--gold-light);
+}
+
+.eyeButton {
+  color: var(--gold);
+  background: none;
+  border: none;
+}
+
+.inputPrice {
+  background: rgba(0,0,0,0.5);
+  border: 1px solid rgba(201,168,76,0.15);
+  font-weight: 700;
+  outline: none;
+  border-radius: 8px;
+  padding: 1vh 1.5vw;
+}
+@media (max-width: 1024px) {
+  .inputPrice { padding: 8px 12px; }
+}
+@media (max-width: 640px) {
+  .inputPrice { padding: 4px 6px; }
+}
+.inputPrice:focus {
+  box-shadow: 0 0 0 2px var(--gold);
+}

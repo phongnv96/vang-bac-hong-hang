@@ -1,0 +1,7 @@
+.root {
+  font-family: var(--font-playfair), serif;
+  font-weight: 900;
+  color: var(--gold-light);
+  letter-spacing: 0.1em;
+  text-shadow: 0 0 30px rgba(245, 210, 122, 0.5), 2px 2px 0 #7a3800;
+}

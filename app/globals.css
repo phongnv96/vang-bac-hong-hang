@@ -1,5 +1,96 @@
 @import "tailwindcss";
 
+/* ===================================================================
+   DESIGN SYSTEM — "Luxury Gold" Theme for Vàng Bạc Hồng Hằng
+   Tailwind v4: register design tokens via @theme, set values via :root
+   =================================================================== */
+
+/* 1. Register tokens in Tailwind's theme so utilities like
+      bg-primary, text-muted-foreground, border-border work */
+@theme {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  --color-chart-1: hsl(var(--chart-1));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-5: hsl(var(--chart-5));
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-heading), ui-serif, Georgia, serif;
+  --font-price-board: var(--font-roboto-condensed), "Roboto Condensed", sans-serif;
+}
+
+/* 2. Set token values per theme */
+@layer base {
+  :root {
+    /* Luxury Red & Gold Theme (Dark by default) */
+    --background: 0 100% 5.1%; /* #1a0000 - Red Deep */
+    --foreground: 44 50% 90%; /* Light gold/cream text */
+    --card: 0 100% 8%;
+    --card-foreground: 44 50% 90%;
+    --popover: 0 100% 8%;
+    --popover-foreground: 44 50% 90%;
+    
+    /* Primary is Gold */
+    --primary: 44.2 54.3% 54.3%; /* #c9a84c */
+    --primary-foreground: 0 100% 5.1%;
+    
+    /* Secondary/Muted is Red Dark */
+    --secondary: 0 100% 12%; /* #3d0000 */
+    --secondary-foreground: 44.2 54.3% 54.3%; 
+    --muted: 0 100% 12%;
+    --muted-foreground: 44 30% 60%;
+    
+    --accent: 0 100% 16%;
+    --accent-foreground: 44.2 54.3% 54.3%;
+    
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 44 20% 90%;
+    
+    --border: 44 54% 20%; /* Dark gold border */
+    --input: 0 100% 15%;
+    --ring: 44.2 54.3% 54.3%;
+    --radius: 0.25rem; /* sharper, more elegant corners */
+
+    --chart-1: 44.2 54.3% 54.3%;
+    --chart-2: 0 100% 12%;
+    --chart-3: 44 70% 70%;
+    --chart-4: 0 100% 20%;
+    --chart-5: 44 50% 40%;
+  }
+
+  /* Base border color — replaces @apply border-border */
+  * {
+    border-color: hsl(var(--border));
+  }
+}
+
+/* ===================================================================
+   ORIGINAL TV-DISPLAY THEME (preserved)
+   =================================================================== */
+
 /* ===== Shared theme ===== */
 :root {
   --gold:       #c9a84c;
@@ -66,19 +157,6 @@ html, body {
 
 body {
   background: var(--red-deep);
-  font-family: 'Roboto Condensed', sans-serif;
-}
-
-/* TV display page: hide cursor + no scroll on large screens */
-.tv-display {
-  cursor: none;
-  overflow: hidden;
-}
-@media (max-width: 1024px) {
-  .tv-display {
-    cursor: auto;
-    overflow: auto;
-  }
 }
 
 /* ===== Shared background ===== */
@@ -111,105 +189,6 @@ body {
   color: var(--red-dark);
 }
 
-/* ===== Form input styling ===== */
-.input-price {
-  background: rgba(0,0,0,0.5);
-  border: 1px solid rgba(201,168,76,0.15);
-  font-weight: 700;
-  outline: none;
-  border-radius: 8px;
-  padding: 1vh 1.5vw;
-}
-@media (max-width: 1024px) {
-  .input-price { padding: 8px 12px; }
-}
-@media (max-width: 640px) {
-  .input-price { padding: 4px 6px; }
-}
-.input-price:focus {
-  box-shadow: 0 0 0 2px var(--gold);
-}
-
-/* ===== Login form responsive ===== */
-.login-box {
-  width: 50vw;
-  padding: 5vh 5vw;
-}
-@media (max-width: 1024px) {
-  .login-box {
-    width: 80vw;
-    padding: 32px 24px;
-  }
-}
-@media (max-width: 640px) {
-  .login-box {
-    width: 92vw;
-    padding: 24px 16px;
-  }
-}
-
-/* ===== Admin dashboard responsive ===== */
-.admin-dashboard {
-  padding: 3vh 4vw;
-}
-@media (max-width: 1024px) {
-  .admin-dashboard { padding: 16px 20px; }
-}
-@media (max-width: 640px) {
-  .admin-dashboard { padding: 12px; }
-}
-
-/* ===== TV Display Layout responsive ===== */
-.tv-content {
-  padding: 4vh 4vw;
-}
-@media (max-width: 1024px) {
-  .tv-content { padding: 24px 48px; }
-}
-@media (max-width: 640px) {
-  .tv-content { padding: 24px 32px; }
-}
-
-.tv-th {
-  padding: 1.2vh 2vw;
-}
-
-@media (max-width: 1024px) {
-  .tv-th { padding: 12px 16px; }
-}
-@media (max-width: 640px) {
-  .tv-th { padding: 8px 12px; }
-}
-
-.tv-td {
-  padding: 0 2vw;
-  height: 11vh;
-  line-height: 1;
-  white-space: nowrap;
-}
-
-@media (max-width: 1024px) {
-  .tv-td { height: 54px; }
-}
-
-@media (max-width: 640px) {
-  .tv-td { 
-    padding: 0 8px; 
-    height: 40px; 
-  }
-}
-
-/* ===== Table Spacing ===== */
-.price-table {
-  border-collapse: separate;
-  border-spacing: 0 1vh;
-}
-@media (max-width: 1024px) {
-  .price-table { border-spacing: 0 6px; }
-}
-@media (max-width: 640px) {
-  .price-table { border-spacing: 0 4px; }
-}
 
 /* ===== Shimmer animation ===== */
 @keyframes shimmer {

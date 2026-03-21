@@ -1,0 +1,17 @@
+.root {
+  margin-top: 0.5vh;
+  margin-bottom: 0.5vh;
+  color: var(--gold);
+  letter-spacing: 0.1em;
+}
+
+.value {
+  color: var(--gold-light);
+  text-shadow: 0 0 15px rgba(245, 210, 122, 0.4);
+  margin-left: 1vw;
+  letter-spacing: 0.05em;
+}
+
+.separator {
+  color: rgba(201, 168, 76, 0.3);
+}

@@ -1,0 +1,1 @@
+export { PriceBoardPage } from "./containers";

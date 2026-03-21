@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/app/lib/supabase";
-import { DEFAULT_PRICES } from "@/app/lib/prices";
+import { supabase } from "@/lib/supabase";
+import { DEFAULT_PRICES } from "@/configs/prices";
 
 function getTodayDate(): string {
   const now = new Date();
@@ -28,7 +28,8 @@ export async function GET() {
     }
 
     return NextResponse.json({ prices: data.prices, date: today, exists: true });
-  } catch {
+  } catch (error) {
+    console.error("[GET /api/prices] Error:", error);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
@@ -58,7 +59,8 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ success: true, date: today });
-  } catch {
+  } catch (error) {
+    console.error("[POST /api/prices] Error:", error);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
