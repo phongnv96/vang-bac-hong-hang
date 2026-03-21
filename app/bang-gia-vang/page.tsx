@@ -178,7 +178,9 @@ export default async function Home() {
         />
 
         <div className="tv-slides-stack">
-          <div id="slide-table" className="tv-slide-panel tv-slide-panel-active" style={{ justifyContent: "center" }}>
+          <div id="slide-table" className="tv-slide-panel tv-slide-panel-active">
+            {/* Spacer trên — đẩy nội dung ra giữa (WebView 66: flex spacer đáng tin hơn justify-content: center) */}
+            <div style={{ flex: 1 }} />
         {/* Price Table */}
         <table className="price-table" style={{ width: "100%", borderCollapse: "separate", borderSpacing: "0 1vh" }}>
           <colgroup>
@@ -307,6 +309,8 @@ export default async function Home() {
         >
           <i>Giá có thể thay đổi theo thị trường • Vui lòng liên hệ để biết chi tiết</i>
         </div>
+            {/* Spacer dưới */}
+            <div style={{ flex: 1 }} />
           </div>
 
           <div
