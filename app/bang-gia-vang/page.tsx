@@ -10,7 +10,6 @@ import { formatVND } from "@/lib/utils";
 import { type PriceRow } from "@/types/prices";
 import { DEFAULT_PRICES } from "@/configs/prices";
 import { loadTvChartHistory } from "@/lib/load-tv-chart-payload";
-import { TvChartBootstrap } from "./tv-chart-bootstrap";
 import "./index.css";
 
 async function fetchPrices(): Promise<PriceRow[]> {
@@ -164,6 +163,15 @@ export default async function Home() {
           data-slide-interval={String(chartPayload.slideIntervalSec)}
           style={{ display: "none" }}
           aria-hidden
+        />
+
+        <script
+          id="tv-chart-initial"
+          type="application/json"
+          // eslint-disable-next-line react/no-danger -- JSON cho script TV (WebView), escape < để an toàn HTML
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(chartPayload).replace(/</g, "\\u003c"),
+          }}
         />
 
         <div className="tv-slides-stack">
@@ -329,8 +337,6 @@ export default async function Home() {
             </div>
           </div>
         </div>
-
-        <TvChartBootstrap initialPayload={chartPayload} />
       </div>
 
       <Script src="/scripts/bang-gia-vang-tv.js" strategy="afterInteractive" />
