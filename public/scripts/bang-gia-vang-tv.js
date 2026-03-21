@@ -122,6 +122,45 @@
     showTvErrorDialog(s, d);
   }
 
+  function tvErrString(e) {
+    if (e == null) return "unknown";
+    if (typeof e === "string") return e;
+    var m = e.message || e.description || String(e);
+    var st = "";
+    try {
+      if (e.stack) st = "\n\n--- stack ---\n" + String(e.stack).slice(0, 600);
+    } catch (e0) {}
+    return m + st;
+  }
+
+  /** Tránh mở dialog mỗi giây nếu cùng một lỗi đồng hồ; vẫn cập nhật __tvClockDiag */
+  var clockDiagState = { key: "", since: 0, repeats: 0 };
+
+  function reportClockException(where, err) {
+    var body = tvErrString(err);
+    var key = String(where) + "|" + body.slice(0, 160);
+    var now = Date.now();
+    try {
+      window.__tvClockDiag = String(where) + ": " + body.slice(0, 320);
+    } catch (e1) {}
+    if (key === clockDiagState.key && now - clockDiagState.since < 90000) {
+      clockDiagState.repeats++;
+      try {
+        window.__tvClockDiag =
+          String(where) + " (lặp lại ×" + clockDiagState.repeats + "): " + body.slice(0, 240);
+      } catch (e2) {}
+      return;
+    }
+    clockDiagState = { key: key, since: now, repeats: 0 };
+    try {
+      showTvErrorDialog("Đồng hồ — " + String(where), body);
+    } catch (e3) {
+      try {
+        alert("Đồng hồ — " + String(where) + "\n\n" + body.slice(0, 800));
+      } catch (e4) {}
+    }
+  }
+
   function formatVND(value) {
     return String(value).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   }
@@ -701,50 +740,92 @@
   var clockTimerId = null;
 
   function getClockElement() {
-    /* Luôn query lại — WebView/Next có thể thay nút #clock sau lần render đầu */
-    return document.getElementById("clock");
-  }
-
-  function setClockDom(el, str) {
-    if (!el) return;
     try {
-      el.textContent = str;
-    } catch (e1) {
-      try {
-        el.innerText = str;
-      } catch (e2) {}
+      return document.getElementById("clock");
+    } catch (e) {
+      reportClockException("getClockElement", e);
+      return null;
     }
   }
 
+  function setClockDom(el, str) {
+    if (!el) {
+      reportClockException(
+        "Thiếu #clock",
+        "document.getElementById('clock') == null — không có nút để ghi giờ."
+      );
+      return;
+    }
+    var e1;
+    var e2;
+    try {
+      el.textContent = str;
+      return;
+    } catch (ex1) {
+      e1 = ex1;
+    }
+    try {
+      el.innerText = str;
+      return;
+    } catch (ex2) {
+      e2 = ex2;
+    }
+    reportClockException(
+      "Ghi DOM đồng hồ",
+      "textContent: " + tvErrString(e1) + "\n\ninnerText: " + tvErrString(e2)
+    );
+  }
+
   function tick() {
-    var now = new Date();
-    var d = pad2(now.getDate());
-    var mo = pad2(now.getMonth() + 1);
-    var h = pad2(now.getHours());
-    var mi = pad2(now.getMinutes());
-    var s = pad2(now.getSeconds());
-    var str = d + "/" + mo + "/" + now.getFullYear() + "  |  " + h + ":" + mi + ":" + s;
-    setClockDom(getClockElement(), str);
+    try {
+      var now = new Date();
+      var d = pad2(now.getDate());
+      var mo = pad2(now.getMonth() + 1);
+      var h = pad2(now.getHours());
+      var mi = pad2(now.getMinutes());
+      var sec = pad2(now.getSeconds());
+      var str = d + "/" + mo + "/" + now.getFullYear() + "  |  " + h + ":" + mi + ":" + sec;
+      setClockDom(getClockElement(), str);
+    } catch (e) {
+      reportClockException("tick()", e);
+    }
   }
 
   /**
    * WebView/TV thường throttle hoặc “đóng băng” setInterval — dùng setTimeout lặp + căn mép giây.
    */
   function scheduleClockTick() {
-    if (clockTimerId != null) {
-      try {
-        clearTimeout(clockTimerId);
-      } catch (eC) {}
-      clockTimerId = null;
-    }
     try {
-      tick();
-    } catch (eT) {}
-    var ms = 1000 - (Date.now() % 1000);
-    if (ms < 80) {
-      ms += 1000;
+      if (clockTimerId != null) {
+        try {
+          clearTimeout(clockTimerId);
+        } catch (eC) {
+          reportClockException("clearTimeout(đồng hồ)", eC);
+        }
+        clockTimerId = null;
+      }
+      try {
+        tick();
+      } catch (eT) {
+        reportClockException("tick trong schedule", eT);
+      }
+      var ms = 1000 - (Date.now() % 1000);
+      if (ms < 80) {
+        ms += 1000;
+      }
+      try {
+        clockTimerId = setTimeout(scheduleClockTick, ms);
+      } catch (eST) {
+        reportClockException("setTimeout(đồng hồ)", eST);
+        try {
+          clockTimerId = setTimeout(scheduleClockTick, 1000);
+        } catch (eST2) {
+          reportClockException("setTimeout fallback 1000ms", eST2);
+        }
+      }
+    } catch (eOuter) {
+      reportClockException("scheduleClockTick (toàn khối)", eOuter);
     }
-    clockTimerId = setTimeout(scheduleClockTick, ms);
   }
 
   function updatePriceCells(prices) {
@@ -788,8 +869,16 @@
     initTvChartIfNeeded();
   }
 
-  tick();
-  scheduleClockTick();
+  try {
+    tick();
+  } catch (eI0) {
+    reportClockException("tick khởi động", eI0);
+  }
+  try {
+    scheduleClockTick();
+  } catch (eI1) {
+    reportClockException("scheduleClockTick khởi động", eI1);
+  }
   loadPrices();
   setInterval(loadPrices, 30000);
 
@@ -797,18 +886,26 @@
     document.addEventListener(
       "visibilitychange",
       function () {
-        if (document.hidden) return;
-        tick();
-        scheduleClockTick();
+        try {
+          if (document.hidden) return;
+          tick();
+          scheduleClockTick();
+        } catch (eV) {
+          reportClockException("visibilitychange", eV);
+        }
       },
       false
     );
     window.addEventListener(
       "pageshow",
       function (ev) {
-        if (ev && ev.persisted) {
-          tick();
-          scheduleClockTick();
+        try {
+          if (ev && ev.persisted) {
+            tick();
+            scheduleClockTick();
+          }
+        } catch (eP) {
+          reportClockException("pageshow", eP);
         }
       },
       false
@@ -816,8 +913,12 @@
     window.addEventListener(
       "load",
       function () {
-        tick();
-        scheduleClockTick();
+        try {
+          tick();
+          scheduleClockTick();
+        } catch (eL) {
+          reportClockException("window load (đồng hồ)", eL);
+        }
       },
       false
     );
