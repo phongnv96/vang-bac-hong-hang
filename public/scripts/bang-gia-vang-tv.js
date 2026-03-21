@@ -829,6 +829,18 @@
     var canvas = document.getElementById("tv-gold-price-chart");
     if (!canvas) return;
 
+    /* Guard: đã mount rồi — chỉ stabilize height, không destroy/recreate (tránh giật) */
+    if (tvChartState.chartInstance) {
+      setChartWrapHeight(canvas);
+      try { tvChartState.chartInstance.resize(); } catch (e) {}
+      return;
+    }
+    if (tvChartState.canvas) {
+      /* Vanilla canvas đã mount — chỉ redraw */
+      try { drawTvGoldCanvas(tvChartState.canvas, tvChartState.payload); } catch (e) {}
+      return;
+    }
+
     function tryMount(pl) {
       if (!pl || pl.empty) return;
       try {

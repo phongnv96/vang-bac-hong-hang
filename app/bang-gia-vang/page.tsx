@@ -178,8 +178,6 @@ export default async function Home() {
 
         <div className="tv-slides-stack">
           <div id="slide-table" className="tv-slide-panel tv-slide-panel-active">
-            {/* Wrapper căn giữa theo chiều dọc: transform translateY(-50%) WebView-safe từ Chrome 36 */}
-            <div style={{ position: "absolute", top: "50%", left: 0, right: 0, transform: "translateY(-50%)" }}>
         {/* Price Table */}
         <table className="price-table" style={{ width: "100%", borderCollapse: "separate", borderSpacing: "0 1vh" }}>
           <colgroup>
@@ -308,7 +306,6 @@ export default async function Home() {
         >
           <i>Giá có thể thay đổi theo thị trường • Vui lòng liên hệ để biết chi tiết</i>
         </div>
-            </div>{/* end centering wrapper */}
           </div>
 
           <div
