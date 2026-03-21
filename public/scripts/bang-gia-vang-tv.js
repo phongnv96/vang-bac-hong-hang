@@ -647,10 +647,29 @@
     tvChartState.payload = null;
   }
 
+  function setChartWrapHeight(canvas) {
+    var wrap = canvas.parentElement;
+    if (!wrap) return;
+    /* Đặt chiều cao tường minh để canvas height:100% resolve đúng trên WebView 66 */
+    var panel = wrap.parentElement; /* #slide-chart */
+    var panelH = panel ? (panel.offsetHeight || panel.clientHeight) : 0;
+    if (panelH < 100) {
+      var ih = window.innerHeight || (document.documentElement && document.documentElement.clientHeight) || 600;
+      panelH = Math.round(ih * 0.72);
+    }
+    var legendEl = panel && panel.querySelector ? panel.querySelector(".tv-chart-legend-hint") : null;
+    var legendH = legendEl ? (legendEl.offsetHeight + 8) : 48;
+    var h = Math.max(260, panelH - legendH - 8);
+    wrap.style.height = h + "px";
+    wrap.style.minHeight = h + "px";
+  }
+
   function mountTvGoldChart(canvas, payload) {
     destroyTvGoldChart();
     tvChartState.canvas = canvas;
     tvChartState.payload = clonePayload(payload);
+
+    setChartWrapHeight(canvas);
 
     /* --- Chart.js path (preferred) --- */
     var inst = createChartJsChart(canvas, tvChartState.payload);
