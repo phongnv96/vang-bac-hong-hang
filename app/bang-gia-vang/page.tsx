@@ -4,7 +4,6 @@ export const dynamic = "force-dynamic";
 // Global CSS: Next.js only allows importing ./globals.css from the root layout (app/layout.tsx).
 // Do not import globals here — styles still apply to this page via <body> in layout.
 
-import Script from "next/script";
 import { headers } from "next/headers";
 import { formatVND } from "@/lib/utils";
 import { type PriceRow } from "@/types/prices";
@@ -353,7 +352,10 @@ export default async function Home() {
         </div>
       </div>
 
-      <Script src="/scripts/bang-gia-vang-tv.js" strategy="afterInteractive" />
+      {/* Inline diagnostic — xác nhận JS chạy được trên WebView, independent of React hydration */}
+      <script dangerouslySetInnerHTML={{ __html: "try{window.__tvJsOk=1}catch(e){}" }} />
+      {/* Plain <script defer> — không phụ thuộc Next.js client runtime, chạy được trên WebView 66 */}
+      <script defer src="/scripts/bang-gia-vang-tv.js" />
     </div>
   );
 }

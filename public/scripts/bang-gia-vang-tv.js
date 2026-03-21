@@ -72,23 +72,23 @@
     var h = document.createElement("div");
     h.textContent = "TV — " + title;
     h.style.cssText =
-      "font-weight:700;font-size:clamp(18px,2.8vmin,28px);color:#f5d27a;margin-bottom:14px;" +
+      "font-weight:700;font-size:22px;color:#f5d27a;margin-bottom:14px;" +
       "font-family:Arial,Helvetica,sans-serif;letter-spacing:0.04em;";
 
     var pre = document.createElement("pre");
     pre.textContent = text;
     pre.style.cssText =
-      "white-space:pre-wrap;word-break:break-word;font-size:clamp(14px,2.2vmin,22px);" +
+      "white-space:pre-wrap;word-break:break-word;font-size:16px;" +
       "line-height:1.45;color:#fff;margin:0 0 18px 0;font-family:Arial,Helvetica,sans-serif;";
 
     var btnRow = document.createElement("div");
-    btnRow.style.cssText = "display:flex;flex-wrap:wrap;gap:12px;align-items:center;";
+    btnRow.style.cssText = "display:flex;flex-wrap:wrap;align-items:center;";
 
     var btnClose = document.createElement("button");
     btnClose.type = "button";
     btnClose.textContent = "Đóng";
     btnClose.style.cssText =
-      "padding:14px 28px;font-size:clamp(16px,2.2vmin,22px);font-weight:700;" +
+      "padding:14px 28px;font-size:18px;font-weight:700;margin-right:12px;" +
       "background:linear-gradient(180deg,#e8c56a,#c9a84c);color:#2d0000;border:none;" +
       "border-radius:8px;cursor:pointer;";
     btnClose.onclick = function () {
