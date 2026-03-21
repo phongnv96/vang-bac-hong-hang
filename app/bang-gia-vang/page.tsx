@@ -98,7 +98,7 @@ export default async function Home() {
             textTransform: "uppercase",
             lineHeight: 1.1,
             width: "100%",
-            paddingTop: "1.2vh",
+            paddingTop: "2vh",
           }}
         >
           Vàng Bạc Hồng Hằng
