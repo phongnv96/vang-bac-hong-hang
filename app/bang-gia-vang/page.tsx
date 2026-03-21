@@ -179,7 +179,7 @@ export default async function Home() {
         <div className="tv-slides-stack">
           <div id="slide-table" className="tv-slide-panel tv-slide-panel-active">
         {/* Price Table */}
-        <table className="price-table" style={{ width: "100%", borderCollapse: "separate", borderSpacing: "0 1vh" }}>
+        <table className="price-table" style={{ width: "100%", borderCollapse: "separate", borderSpacing: "0 1vh", flex: 1 }}>
           <colgroup>
             <col className="tv-col-name" />
             <col className="tv-col-buy" />
