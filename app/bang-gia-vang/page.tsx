@@ -57,8 +57,7 @@ export default async function Home() {
         height: "100vh",
         display: "flex",
         flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
+        alignItems: "stretch",
         cursor: "none",
       }}
     >
@@ -73,13 +72,13 @@ export default async function Home() {
           position: "relative",
           zIndex: 3,
           width: "100%",
-          minHeight: "100vh",
+          height: "100vh",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          justifyContent: "center",
           textAlign: "center",
           boxSizing: "border-box",
+          overflow: "hidden",
         }}
       >
         {/* Shop name */}
