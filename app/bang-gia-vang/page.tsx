@@ -1,12 +1,16 @@
 // Server Component — no "use client"
+export const dynamic = "force-dynamic";
 // All layout uses inline styles — Tailwind v4 @layer not supported in WebView 66
 // Global CSS: Next.js only allows importing ./globals.css from the root layout (app/layout.tsx).
 // Do not import globals here — styles still apply to this page via <body> in layout.
 
+import Script from "next/script";
 import { headers } from "next/headers";
 import { formatVND } from "@/lib/utils";
 import { type PriceRow } from "@/types/prices";
 import { DEFAULT_PRICES } from "@/configs/prices";
+import { loadTvChartHistory } from "@/lib/load-tv-chart-payload";
+import { TvChartBootstrap } from "./tv-chart-bootstrap";
 import "./index.css";
 
 async function fetchPrices(): Promise<PriceRow[]> {
@@ -42,6 +46,7 @@ function getServerTime(): string {
 
 export default async function Home() {
   const prices = await fetchPrices();
+  const { chart: chartPayload } = await loadTvChartHistory();
   const serverTime = getServerTime();
 
   return (
@@ -154,6 +159,15 @@ export default async function Home() {
           <div style={{ flex: 1, height: "1px", background: "linear-gradient(90deg, transparent, #c9a84c, transparent)", marginLeft: "1rem" }} />
         </div>
 
+        <div
+          id="tv-tuning"
+          data-slide-interval={String(chartPayload.slideIntervalSec)}
+          style={{ display: "none" }}
+          aria-hidden
+        />
+
+        <div className="tv-slides-stack">
+          <div id="slide-table" className="tv-slide-panel tv-slide-panel-active">
         {/* Price Table */}
         <table className="price-table" style={{ width: "100%", borderCollapse: "separate", borderSpacing: "0 1vh" }}>
           <thead>
@@ -273,53 +287,53 @@ export default async function Home() {
         <div className="text-footer" style={{ color: "rgba(201,168,76,0.5)", letterSpacing: "0.2em" }}>
           <i>Giá có thể thay đổi theo thị trường • Vui lòng liên hệ để biết chi tiết</i>
         </div>
+          </div>
+
+          <div
+            id="slide-chart"
+            className="tv-slide-panel tv-slide-panel-inactive tv-slide-chart"
+          >
+            {!chartPayload.empty ? (
+              <div
+                className="text-sub tv-chart-legend-hint"
+                style={{
+                  fontFamily: "'Playfair Display', serif",
+                  color: "rgba(201, 168, 76, 0.95)",
+                  fontWeight: 600,
+                }}
+              >
+                <span style={{ color: "#66ff99" }} aria-hidden>
+                  ●
+                </span>{" "}
+                Tăng so với ngày trước &nbsp;·&nbsp;{" "}
+                <span style={{ color: "#ff8a80" }} aria-hidden>
+                  ●
+                </span>{" "}
+                Giảm &nbsp;·&nbsp;{" "}
+                <span style={{ color: "#fff176" }} aria-hidden>
+                  ●
+                </span>{" "}
+                Không đổi / ngày đầu dãy
+              </div>
+            ) : null}
+            <div className="tv-chart-wrap">
+              {chartPayload.empty ? (
+                <div id="tv-chart-empty" className="tv-chart-empty">
+                  Chưa đủ dữ liệu lịch sử để vẽ biểu đồ
+                  <br />
+                  <span style={{ fontSize: "0.85em", opacity: 0.85 }}>Lưu giá từ admin để tích lũy điểm theo ngày</span>
+                </div>
+              ) : (
+                <canvas id="tv-gold-price-chart" />
+              )}
+            </div>
+          </div>
+        </div>
+
+        <TvChartBootstrap initialPayload={chartPayload} />
       </div>
 
-      {/* Vanilla JS clock — bypass React hydration */}
-      <script dangerouslySetInnerHTML={{ __html: `
-        (function() {
-          function formatVND(value) {
-            return String(value).replace(/\\B(?=(\\d{3})+(?!\\d))/g, '.');
-          }
-
-          function tick() {
-            var now = new Date();
-            var d = String(now.getDate()).padStart(2, '0');
-            var mo = String(now.getMonth() + 1).padStart(2, '0');
-            var h = String(now.getHours()).padStart(2, '0');
-            var m = String(now.getMinutes()).padStart(2, '0');
-            var s = String(now.getSeconds()).padStart(2, '0');
-            var el = document.getElementById('clock');
-            if (el) el.textContent = d + '/' + mo + '/' + now.getFullYear() + '  |  ' + h + ':' + m + ':' + s;
-          }
-
-          function updatePriceCells(prices) {
-            if (!Array.isArray(prices)) return;
-            for (var i = 0; i < prices.length; i++) {
-              var row = prices[i] || {};
-              var buyCell = document.querySelector('[data-row="' + i + '"][data-field="buy"]');
-              var sellCell = document.querySelector('[data-row="' + i + '"][data-field="sell"]');
-
-              if (buyCell) buyCell.textContent = row.buy ? formatVND(row.buy) + 'đ' : '—';
-              if (sellCell) sellCell.textContent = row.sell ? formatVND(row.sell) + 'đ' : '—';
-            }
-          }
-
-          async function loadPrices() {
-            try {
-              var res = await fetch('/api/prices', { cache: 'no-store' });
-              if (!res.ok) return;
-              var data = await res.json();
-              updatePriceCells(data && data.prices);
-            } catch (e) {}
-          }
-
-          tick();
-          loadPrices();
-          setInterval(tick, 1000);
-          setInterval(loadPrices, 30000);
-        })();
-      ` }} />
+      <Script src="/scripts/bang-gia-vang-tv.js" strategy="afterInteractive" />
     </div>
   );
 }
