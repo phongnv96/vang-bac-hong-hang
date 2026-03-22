@@ -8,6 +8,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Logo } from "@/components/ui/logo";
+import { DesktopAuth, MobileAuth } from "./header-auth";
 
 const NAVIGATION_LINKS = [
   { href: "/", label: "Trang Chủ" },
@@ -44,6 +45,7 @@ export function Header() {
 
         {/* Desktop Call To Action */}
         <div className="hidden md:flex items-center gap-4">
+          <DesktopAuth />
           <Button className="bg-primary text-primary-foreground font-semibold hover:brightness-110">
             <Phone className="w-4 h-4 mr-2" />
             098x.xxx.xxx
@@ -59,17 +61,23 @@ export function Header() {
                 <span className="sr-only">Mở menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="bg-background/95 backdrop-blur-md border-l-border">
+            <SheetContent side="right" className="bg-background/95 backdrop-blur-md border-l-border overflow-y-auto">
               <SheetTitle className="font-serif text-2xl text-primary mb-6 flex items-center gap-3">
                 <Logo className="w-8 h-8" />
                 HỒNG HẰNG
               </SheetTitle>
-              <nav className="flex flex-col gap-4 mt-8">
+              
+              {/* Mobile Auth Section */}
+              <div className="mb-6 pb-6 border-b border-border/50">
+                <MobileAuth />
+              </div>
+
+              <nav className="flex flex-col gap-4">
                 {NAVIGATION_LINKS.map((link) => (
                   <Link
                     key={link.href}
                     href={link.href}
-                    className="text-lg font-medium text-foreground/80 hover:text-primary transition-colors uppercase py-2 border-b border-white/5"
+                    className="text-lg font-medium text-foreground/80 hover:text-primary transition-colors uppercase py-2 border-b border-border/50"
                   >
                     {link.label}
                   </Link>

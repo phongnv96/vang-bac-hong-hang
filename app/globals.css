@@ -209,3 +209,9 @@ body {
 .animate-row-slide {
   animation: rowSlide 0.4s ease-out both;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-row-slide {
+    animation: none;
+  }
+}
