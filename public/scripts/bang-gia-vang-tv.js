@@ -335,7 +335,7 @@
           responsive: true,
           maintainAspectRatio: false,
           animation: false,
-          layout: { padding: { top: 20, bottom: 44, left: 8, right: 8 } },
+          layout: { padding: { top: 20, bottom: 44, left: 30, right: 30 } },
           scales: {
             x: {
               ticks: {
